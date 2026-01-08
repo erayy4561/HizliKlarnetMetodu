@@ -1,5 +1,6 @@
 import React from 'react';
-// import { Link } from 'react-router-dom'; // Hata çözülene kadar geçici olarak devre dışı bırakıldı
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // --- Simgeler (İkonlar) ---
 // Bu ikonlar sadece bu bileşene özel olduğu için burada tanımlıyoruz.
@@ -20,6 +21,8 @@ const GamepadIcon = (props: React.SVGProps<SVGSVGElement>) => (
  * ve eğitmen bilgisini içerir.
  */
 const Home: React.FC = () => {
+    const { token } = useAuth();
+
     return (
         <div className="bg-gray-50 text-gray-800">
             {/* Karşılama Alanı */}
@@ -32,14 +35,12 @@ const Home: React.FC = () => {
                         Eray Hızlı'nın modern eğitim metodları ve interaktif araçlarıyla müziğinizi bir üst seviyeye taşıyın.
                     </p>
                     <div className="mt-10">
-                        {/* Hata veren Link bileşeni yerine geçici olarak 'a' etiketi kullanıldı */}
-                        <a
-                            href="/quiz"
-                            onClick={(e) => { e.preventDefault(); alert('Yönlendirme ana yönlendirici dosyasında ayarlanacak.'); }}
+                        <Link
+                            to={token ? "/quiz" : "/login"}
                             className="bg-teal-500 text-white font-bold py-4 px-10 rounded-full text-lg hover:bg-teal-600 transform hover:scale-105 transition-all duration-300 shadow-lg inline-block"
                         >
-                            Teste Başla
-                        </a>
+                            {token ? "Teste Başla" : "Giriş Yap"}
+                        </Link>
                     </div>
                 </div>
             </section>
