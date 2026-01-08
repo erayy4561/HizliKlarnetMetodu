@@ -1,0 +1,1016 @@
+# Clarinet Lessons: İnteraktif Müzik Eğitimi Platformu - Teknik Mimari ve Uygulama Raporu
+
+## Özet (Abstract)
+
+Bu çalışma, klarnet öğrencileri için geliştirilmiş interaktif bir müzik eğitimi platformunun teknik mimarisini, uygulama detaylarını ve sistem tasarımını sunmaktadır. Clarinet Lessons platformu, modern web teknolojileri kullanılarak geliştirilmiş ve tamamen konteynerize edilmiş bir eğitim yönetim sistemidir. Sistem, nota okuma, enstrüman çalma, akort ve metronom gibi müzik eğitimi için gerekli araçları içermektedir. Backend katmanında NestJS framework'ü ile RESTful API mimarisi, frontend katmanında ise React ile interaktif kullanıcı arayüzü sağlanmıştır. JWT tabanlı kimlik doğrulama ve rol tabanlı erişim kontrolü ile güvenlik katmanı oluşturulmuştur. Bu rapor, sistemin mimari yapısını, API endpoint'lerini, frontend bileşenlerini, veritabanı şemasını ve deployment stratejisini detaylı olarak incelemektedir.
+
+**Anahtar Kelimeler**: Müzik Eğitimi, Web Uygulaması, RESTful API, React, NestJS, JWT Authentication, Docker
+
+---
+
+## 1. Giriş (Introduction)
+
+### 1.1. Problem Tanımı
+
+Geleneksel müzik eğitimi metodları, öğrencilerin nota okuma, entonasyon ve ritim becerilerini geliştirmek için yeterli geri bildirim ve pratik imkanı sunmamaktadır. Özellikle klarnet gibi enstrümanlarda, öğrencilerin doğru akort, nota tanıma ve performans değerlendirmesi için interaktif araçlara ihtiyaç duyulmaktadır.
+
+### 1.2. Amaç ve Kapsam
+
+Bu çalışmanın amacı, klarnet öğrencileri için kapsamlı bir eğitim platformu geliştirmek ve bu platformun teknik mimarisini dokümante etmektir. Platform, aşağıdaki temel işlevleri sağlamaktadır:
+
+- Nota okuma becerilerini test eden interaktif quiz modülleri
+- Gerçek zamanlı pitch tespiti ile enstrüman çalma performans değerlendirmesi
+- Akort aleti ve metronom gibi müzik pratiği araçları
+- Kullanıcı performans takibi ve analizi
+- Ders yönetim sistemi
+
+### 1.3. Teknoloji Seçimi ve Gerekçeleri
+
+Aşağıdaki tablo, projede kullanılan teknolojileri ve seçim gerekçelerini özetlemektedir:
+
+| Kategori | Teknoloji | Versiyon | Gerekçe |
+|----------|-----------|----------|---------|
+| **Backend Framework** | NestJS | 11.x | TypeScript tabanlı, modüler yapı, dependency injection, decorator pattern desteği |
+| **ORM** | TypeORM | 0.3.x | TypeScript için tip-güvenli veritabanı işlemleri, aktif geliştirme |
+| **Authentication** | JWT | - | Stateless kimlik doğrulama, endüstri standardı, ölçeklenebilir |
+| **Frontend Framework** | React | 18.3 | Bileşen tabanlı, yeniden kullanılabilir UI, geniş ekosistem |
+| **Type System** | TypeScript | 5.6+ | Tip güvenliği, büyük ölçekli projelerde hata azaltma |
+| **Build Tool** | Vite | 5.4+ | Hızlı geliştirme ortamı, optimize build süreçleri |
+| **CSS Framework** | TailwindCSS | 3.x | Utility-first yaklaşım, hızlı UI geliştirme |
+| **Veritabanı (Production)** | MySQL | 8.4 | İlişkisel veritabanı, yüksek performans, güvenilirlik |
+| **Veritabanı (Development)** | SQLite | - | Hafif, dosya tabanlı, geliştirme için uygun |
+| **Konteynerizasyon** | Docker | - | Endüstri standardı, izolasyon, taşınabilirlik |
+| **Orkestrasyon** | Docker Compose | 2.x | Çoklu servis yönetimi, bağımlılık yönetimi |
+
+---
+
+## 2. Sistem Mimarisi (System Architecture)
+
+### 2.1. Genel Mimari Yapı
+
+Sistem, üç katmanlı bir mimari yapıya sahiptir. Aşağıdaki tablo, her katmanın sorumluluklarını ve teknolojilerini göstermektedir:
+
+| Katman | Teknoloji | Sorumluluklar | Port |
+|--------|-----------|---------------|------|
+| **Sunum Katmanı** | React 18 + Vite | Kullanıcı arayüzü, kullanıcı etkileşimi, state yönetimi | 80 |
+| **İş Mantığı Katmanı** | NestJS + TypeScript | RESTful API, iş kuralları, kimlik doğrulama | 8080 |
+| **Veri Katmanı** | MySQL 8.4 | Veri saklama, ilişkisel veri yönetimi | 3306 |
+
+### 2.2. Mimari Desenler
+
+Sistemde kullanılan mimari desenler ve uygulama alanları aşağıdaki tabloda özetlenmiştir:
+
+| Desen | Uygulama Alanı | Açıklama |
+|-------|----------------|----------|
+| **MVC (Model-View-Controller)** | Backend | Controller-Service-Repository deseni ile katmanlı mimari |
+| **RESTful API** | Backend | HTTP metodları (GET, POST, DELETE) ile kaynak tabanlı endpoint yapısı |
+| **JWT Authentication** | Backend/Frontend | Stateless kimlik doğrulama mekanizması |
+| **Role-Based Access Control (RBAC)** | Backend | Kullanıcı rolleri (STANDARD, ADMIN, SUPERADMIN) ile yetkilendirme |
+| **Component-Based Architecture** | Frontend | React bileşenleri ile modüler UI yapısı |
+| **Context API** | Frontend | Global state yönetimi (kimlik doğrulama durumu) |
+
+---
+
+## 3. Backend API Mimarisi
+
+Backend API, modüler yapıda organize edilmiş RESTful endpoint'lerden oluşmaktadır. Aşağıdaki tablo, tüm API modüllerini ve endpoint sayılarını özetlemektedir:
+
+| Modül | Base Path | Endpoint Sayısı | Açıklama |
+|-------|-----------|-----------------|----------|
+| **Kimlik Doğrulama** | `/api/auth` | 3 | Kullanıcı girişi, kayıt, token doğrulama |
+| **Kullanıcı Yönetimi** | `/api/users` | 1 | Kullanıcı profil işlemleri |
+| **Quiz Sonuçları** | `/api/quiz` | 4 | Portre ve performans quiz sonuçları |
+| **Ders Yönetimi** | `/api/courses` | 5 | Ders CRUD ve kayıt işlemleri |
+| **Yönetim** | `/api/admin` | 6 | Admin paneli işlemleri |
+| **Sistem** | `/api` | 2 | Health check ve kullanıcı bilgisi |
+
+### 3.1. Kimlik Doğrulama Modülü (`/api/auth`)
+
+#### 3.1.1. Kullanıcı Girişi Endpoint'i
+
+**Endpoint**: `POST /api/auth/login`
+
+**Açıklama**: Kullanıcı kimlik doğrulama işlemini gerçekleştirir. Kullanıcı adı ve şifre kombinasyonu ile doğrulama yapılır ve başarılı giriş durumunda JWT token üretilir.
+
+| Parametre | Tip | Zorunlu | Açıklama |
+|-----------|-----|---------|----------|
+| `username` | string | ✓ | Kullanıcı adı |
+| `password` | string | ✓ | Kullanıcı şifresi |
+
+**Yanıt Formatı**:
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "kullanici",
+    "email": "kullanici@example.com",
+    "accountType": "STANDARD"
+  }
+}
+```
+
+**Güvenlik Notları**: Şifreler bcrypt algoritması ile hash'lenmiş olarak saklanır. Doğrulama sırasında hash karşılaştırması yapılır.
+
+#### 3.1.2. Kullanıcı Kaydı Endpoint'i
+
+**Endpoint**: `POST /api/auth/register`
+
+**Açıklama**: Yeni kullanıcı hesabı oluşturur. Sistemde benzersiz kullanıcı adı ve e-posta kontrolü yapılır.
+
+| Parametre | Tip | Zorunlu | Kısıtlamalar | Açıklama |
+|-----------|-----|---------|--------------|----------|
+| `username` | string | ✓ | Unique | Kullanıcı adı |
+| `email` | string | ✓ | Unique, Email formatı | E-posta adresi |
+| `password` | string | ✓ | Min: 6 karakter | Kullanıcı şifresi |
+
+**Yanıt Formatı**: Login endpoint'i ile aynı format.
+
+#### 3.1.3. Profil Doğrulama Endpoint'i
+
+**Endpoint**: `GET /api/auth/profile`
+
+**Açıklama**: JWT token'dan kullanıcı bilgilerini çözer. Token geçerliliğini kontrol etmek ve kullanıcı oturum durumunu doğrulamak için kullanılır.
+
+**Kimlik Doğrulama**: `Authorization: Bearer <token>` header'ı gereklidir.
+
+---
+
+### 3.2. Kullanıcı Yönetimi Modülü (`/api/users`)
+
+#### 3.2.1. Kullanıcı Profil Endpoint'i
+
+**Endpoint**: `GET /api/users/me`
+
+**Açıklama**: Giriş yapmış kullanıcının kendi profil bilgilerini döndürür. Şifre bilgisi güvenlik nedeniyle yanıttan çıkarılır.
+
+**Kimlik Doğrulama**: JWT token gereklidir.
+
+**Yanıt Formatı**:
+```json
+{
+  "id": 1,
+  "username": "kullanici",
+  "email": "kullanici@example.com",
+  "accountType": "STANDARD",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
+---
+
+### 3.3. Quiz Sonuçları Modülü
+
+#### 3.3.1. Portre Quiz Sonuçları
+
+**Endpoint**: `POST /api/quiz/portrait/results`
+
+**Açıklama**: Portre (Nota Okuma) quiz modunda elde edilen sonuçları kaydeder. Kullanıcının dizek üzerinde gösterilen notaları ne kadar doğru okuduğunu ölçen metrikleri içerir.
+
+| Parametre | Tip | Açıklama |
+|-----------|-----|----------|
+| `duration` | integer | Quiz süresi (dakika) |
+| `correctAnswers` | integer | Doğru cevap sayısı |
+| `wrongAnswers` | integer | Yanlış cevap sayısı |
+| `scorePercentage` | float | Başarı yüzdesi (0-100) |
+| `completionTime` | integer | Tamamlanma süresi (saniye) |
+
+**Endpoint**: `GET /api/quiz/portrait/results/me`
+
+**Açıklama**: Kullanıcının geçmiş portre quiz sonuçlarını kronolojik sırayla (en yeni önce) listeler.
+
+#### 3.3.2. Performans Quiz Sonuçları
+
+**Endpoint**: `POST /api/quiz/performance/results`
+
+**Açıklama**: Performans (Enstrüman ile Çalma) quiz modunda elde edilen sonuçları kaydeder. Mikrofon aracılığıyla çalınan notaların entonasyon analizi sonuçlarını içerir.
+
+| Parametre | Tip | Açıklama |
+|-----------|-----|----------|
+| `duration` | integer | Quiz süresi (dakika) |
+| `notesCompleted` | integer | Tamamlanan nota sayısı |
+| `accuracyPercentage` | float | Doğruluk yüzdesi (0-100) |
+| `timeTaken` | integer | Geçen süre (saniye) |
+
+**Endpoint**: `GET /api/quiz/performance/results/me`
+
+**Açıklama**: Kullanıcının geçmiş performans quiz sonuçlarını kronolojik sırayla listeler.
+
+---
+
+### 3.4. Ders Yönetimi Modülü (`/api/courses`)
+
+#### 3.4.1. Ders Listeleme
+
+**Endpoint**: `GET /api/courses`
+
+**Açıklama**: Sistemdeki tüm dersleri listeler. Herhangi bir kimlik doğrulama gerektirmez.
+
+**Yanıt Formatı**: Ders objeleri dizisi.
+
+#### 3.4.2. Ders Oluşturma
+
+**Endpoint**: `POST /api/courses`
+
+**Açıklama**: Yeni ders oluşturur. Genellikle Admin yetkisine sahip kullanıcılar tarafından kullanılır.
+
+| Parametre | Tip | Zorunlu | Açıklama |
+|-----------|-----|---------|----------|
+| `title` | string | ✓ | Ders başlığı |
+| `description` | text | - | Ders açıklaması |
+| `imageUrl` | string | - | Ders görseli URL'i |
+| `level` | string | - | Ders seviyesi (örn: Başlangıç, Orta, İleri) |
+
+#### 3.4.3. Ders Silme
+
+**Endpoint**: `DELETE /api/courses/:id`
+
+**Açıklama**: Belirtilen ID'ye sahip dersi siler. İlişkili kullanıcı kayıtları da silinir.
+
+#### 3.4.4. Derse Kayıt Olma
+
+**Endpoint**: `POST /api/courses/:id/enroll`
+
+**Açıklama**: Kullanıcıyı belirtilen derse kaydeder. Many-to-Many ilişki tablosuna kayıt eklenir.
+
+#### 3.4.5. Dersten Ayrılma
+
+**Endpoint**: `POST /api/courses/:id/withdraw`
+
+**Açıklama**: Kullanıcının dersten kaydını iptal eder.
+
+---
+
+### 3.5. Yönetim Modülü (`/api/admin`)
+
+#### 3.5.1. Kullanıcı Listeleme
+
+**Endpoint**: `GET /api/admin/users`
+
+**Açıklama**: Sistemdeki tüm kullanıcıları listeler. Admin ve SuperAdmin yetkisine sahip kullanıcılar tarafından kullanılır.
+
+#### 3.5.2. Kullanıcı Detayı
+
+**Endpoint**: `GET /api/admin/users/:id`
+
+**Açıklama**: Belirli bir kullanıcının detaylı bilgilerini getirir.
+
+#### 3.5.3. Şifre Değiştirme
+
+**Endpoint**: `POST /api/admin/users/:id/password`
+
+**Açıklama**: Admin tarafından kullanıcı şifresinin değiştirilmesini sağlar.
+
+| Parametre | Tip | Zorunlu | Kısıtlamalar | Açıklama |
+|-----------|-----|---------|--------------|----------|
+| `password` | string | ✓ | Min: 6 karakter | Yeni şifre (bcrypt ile hash'lenir) |
+
+#### 3.5.4. Quiz Sonuçları Görüntüleme
+
+**Endpoint**: `GET /api/admin/users/:id/results/portrait`
+**Endpoint**: `GET /api/admin/users/:id/results/performance`
+
+**Açıklama**: Belirli bir kullanıcının quiz sonuçlarını admin panelinde görüntülemek için kullanılır.
+
+#### 3.5.5. Kullanıcı Silme
+
+**Endpoint**: `DELETE /api/admin/users/:id`
+
+**Açıklama**: Kullanıcıyı sistemden siler. Sadece SuperAdmin yetkisine sahip kullanıcılar tarafından kullanılabilir. Kullanıcı kendisini silemez (güvenlik kontrolü).
+
+---
+
+### 3.6. Sistem Durumu Endpoint'leri
+
+#### 3.6.1. Health Check
+
+**Endpoint**: `GET /api`
+
+**Açıklama**: Backend servisinin çalışıp çalışmadığını kontrol eden basit health-check endpoint'idir.
+
+**Yanıt**: `"Hello World!"`
+
+#### 3.6.2. Kullanıcı Bilgisi
+
+**Endpoint**: `GET /api/me`
+
+**Açıklama**: Token'dan kullanıcı bilgisini çözer ve döndürür.
+
+---
+
+## 4. Frontend Uygulama Mimarisi
+
+### 4.1. Uygulama Yapısı ve Routing
+
+Frontend uygulaması, modüler React bileşenleri ve route yapılandırmasından oluşmaktadır. Aşağıdaki tablo, ana bileşen kategorilerini ve sayılarını göstermektedir:
+
+| Kategori | Bileşen Sayısı | Açıklama |
+|----------|----------------|----------|
+| **Ana Yapı** | 5 | Routing, Layout, Authentication Context |
+| **Sayfa Bileşenleri** | 4 | Home, Login, Profile, UserDetail |
+| **Müzik Araçları** | 2 | Tuner, Metronome |
+| **Quiz Modülleri** | 3 | Quiz, QuizPortrait, QuizPerformance |
+| **Dersler** | 1 | Courses |
+| **Utilities** | 1 | Pitch hesaplama fonksiyonları |
+
+#### 4.1.1. Ana Düzen Bileşeni (`AppLayout.tsx`)
+
+**Açıklama**: Uygulamanın ana düzen bileşenidir. Tüm sayfaları kapsayan çerçeve görevi görür ve aşağıdaki işlevleri sağlar:
+
+- Üst navigasyon menüsü yönetimi
+- Mobil uyumlu responsive menü
+- Kullanıcı giriş durumuna göre menü öğelerinin gösterilmesi/gizlenmesi
+- Çoklu dil desteği (i18n) entegrasyonu
+- Logo ve marka gösterimi
+
+**Teknik Özellikler**:
+- React Router ile sayfa yönlendirme
+- Context API ile global state yönetimi
+- TailwindCSS ile responsive tasarım
+
+#### 4.1.2. Korumalı Rota Bileşeni (`Protected.tsx`)
+
+**Açıklama**: Korumalı rota bileşeni, içeriğindeki bileşenleri sadece kimlik doğrulaması yapmış kullanıcıların görmesini sağlar. Giriş yapılmamış durumda otomatik olarak login sayfasına yönlendirme yapar.
+
+**Kullanım Senaryoları**:
+- Profil sayfası koruması
+- Dersler sayfası koruması
+- Admin paneli erişim kontrolü
+
+#### 4.1.3. Routing Yapılandırması (`router.tsx`)
+
+**Açıklama**: React Router yapılandırmasını içerir. Tüm sayfa rotalarını tanımlar ve hangi bileşenin hangi URL path'inde gösterileceğini belirler.
+
+**Rota Yapısı**:
+
+| Path | Bileşen | Korumalı | Açıklama |
+|------|---------|----------|----------|
+| `/` | Home | Hayır | Ana sayfa |
+| `/login` | Login | Hayır | Giriş/Kayıt sayfası |
+| `/tuner` | Tuner | Hayır | Akort aleti |
+| `/metronome` | Metronome | Hayır | Metronom |
+| `/quiz` | Quiz | Hayır | Quiz seçim ekranı |
+| `/quiz/portrait` | QuizPortrait | Hayır | Portre quiz modu |
+| `/quiz/performance` | QuizPerformance | Hayır | Performans quiz modu |
+| `/courses` | Courses | ✓ | Dersler sayfası |
+| `/profile` | Profile | ✓ | Profil sayfası |
+| `/users/:id` | UserDetail | ✓ | Kullanıcı detay sayfası (Admin) |
+
+#### 4.1.4. Kimlik Doğrulama Context'i (`AuthContext.tsx`)
+
+**Açıklama**: Kimlik doğrulama durumunu yöneten React Context bileşenidir. Aşağıdaki işlevleri sağlar:
+
+- Kullanıcı girişi ve çıkışı yönetimi
+- Kullanıcı kayıt işlemleri
+- JWT token yönetimi (localStorage)
+- Otomatik token doğrulama
+- API isteklerine otomatik token ekleme
+
+**State Yönetimi**:
+- `token`: JWT token değeri
+- `user`: Kullanıcı profil bilgileri
+- `login()`: Giriş fonksiyonu
+- `register()`: Kayıt fonksiyonu
+- `logout()`: Çıkış fonksiyonu
+- `loadMe()`: Kullanıcı bilgilerini yükleme fonksiyonu
+
+---
+
+### 4.2. Sayfa Bileşenleri (View Components)
+
+Aşağıdaki tablo, sayfa bileşenlerinin özelliklerini ve işlevlerini özetlemektedir:
+
+| Bileşen | Dosya | Korumalı | Ana İşlev |
+|---------|-------|----------|-----------|
+| **Ana Sayfa** | Home.tsx | Hayır | Pazarlama içeriği, özellik tanıtımı |
+| **Giriş/Kayıt** | Login.tsx | Hayır | Kullanıcı girişi ve kayıt işlemleri |
+| **Profil** | Profile.tsx | ✓ | Kullanıcı bilgileri ve quiz sonuçları |
+| **Kullanıcı Detay** | UserDetail.tsx | ✓ | Admin paneli kullanıcı detay görüntüleme |
+
+#### 4.2.1. Ana Sayfa (`Home.tsx`)
+
+**Açıklama**: Uygulamanın ana sayfasıdır. Pazarlama içeriği, özellik tanıtımları ve eğitmen bilgisini içerir.
+
+**İçerik Bölümleri**:
+- Karşılama mesajı ve Call-to-Action (CTA) butonu
+- Uygulama özellikleri tanıtımı (Tuner, Metronome, Quiz)
+- Eğitmen (Eray Hızlı) hakkında bilgi bölümü
+
+#### 4.2.2. Giriş/Kayıt Sayfası (`Login.tsx`)
+
+**Açıklama**: Kullanıcıların sisteme giriş yapmasını veya yeni hesap oluşturmasını sağlar. İki sütunlu bir düzen içerir.
+
+**Özellikler**:
+- Form validasyonu (client-side)
+- Hata mesajları gösterimi
+- Yükleme durumu göstergeleri
+- Başarılı giriş/kayıt sonrası otomatik yönlendirme
+- Responsive tasarım
+
+#### 4.2.3. Profil Sayfası (`Profile.tsx`)
+
+**Açıklama**: Kullanıcının hesap bilgilerini ve geçmiş quiz sonuçlarını gösterir. Admin/SuperAdmin yetkisine sahip kullanıcılar için yönetim paneli içerir.
+
+**Bölümler**:
+- Profil başlık kartı (kullanıcı adı, e-posta, rol rozeti)
+- Admin Paneli (sadece Admin/SuperAdmin için)
+- Portre Quiz Sonuçları tablosu
+- Performans Quiz Sonuçları tablosu
+
+**AdminPanel Alt Bileşeni**:
+- Tüm kullanıcıları listeleme
+- Kullanıcı şifre değiştirme
+- Kullanıcı rol değiştirme (SuperAdmin için)
+- Kullanıcı silme (SuperAdmin için)
+
+#### 4.2.4. Kullanıcı Detay Sayfası (`UserDetail.tsx`)
+
+**Açıklama**: Admin panelinde, yöneticinin belirli bir kullanıcının detaylarını ve quiz sonuçlarını görüntülediği sayfadır.
+
+**Bölümler**:
+- Kullanıcı başlık kartı
+- Portre Quiz Sonuçları tablosu
+- Performans Quiz Sonuçları tablosu
+
+---
+
+### 4.3. Müzik Araçları Bileşenleri
+
+Müzik araçları bileşenleri, gerçek zamanlı ses işleme ve görsel geri bildirim sağlar:
+
+| Bileşen | Teknoloji | Özellikler |
+|---------|-----------|------------|
+| **Tuner** | Web Audio API, Pitchy | Gerçek zamanlı pitch tespiti, cents gösterimi, Türk/Batı müziği modları |
+| **Metronome** | Web Audio API | BPM ayarı (40-200), zaman ölçüsü seçimi, görsel/işitsel vuruş |
+
+#### 4.3.1. Akort Aleti (`Tuner.tsx`)
+
+**Açıklama**: Canlı akort aleti bileşenidir. Web Audio API kullanarak mikrofon girişini dinler ve pitchy kütüphanesi ile anlık frekans tespiti yapar.
+
+**Teknik Özellikler**:
+- Gerçek zamanlı pitch tespiti (Web Audio API)
+- Görsel ibre göstergesi (SVG gauge)
+- Cents (sent) cinsinden akort sapması gösterimi
+- Türk Müziği modu (Si bemol klarnet transpozisyonu: +5 semiton)
+- Batı Müziği (Piyano) modu
+- Frekans ve nota ismi gösterimi
+- Mükemmel akort durumu için görsel geri bildirim
+
+**Algoritma**: 
+- FFT (Fast Fourier Transform) ile frekans analizi
+- Pitch detection algoritması (pitchy kütüphanesi)
+- Cents hesaplama: `1200 * log2(freq / targetFreq)`
+
+**Kullanım Senaryosu**: Kullanıcılar klarnetlerini akort etmek için bu aracı kullanır. Mikrofon izni gerektirir.
+
+#### 4.3.2. Metronom (`Metronome.tsx`)
+
+**Açıklama**: Hassas zamanlamalı bir metronomdur. Web Audio API'nin zamanlama özelliklerini kullanarak yüksek hassasiyetli vuruş üretimi sağlar.
+
+**Teknik Özellikler**:
+- BPM (Beats Per Minute) ayarı (40-200 arası)
+- Zaman ölçüsü seçimi (4/4, 3/4, 2/4, 6/8)
+- Görsel vuruş göstergeleri
+- İşitsel vuruş sesleri (vurgulu ve normal vuruşlar)
+- Başlat/Durdur kontrolü
+
+**Zamanlama Algoritması**:
+- Web Audio API `AudioContext.currentTime` kullanımı
+- `requestAnimationFrame` ile zamanlama döngüsü
+- Önceden zamanlanmış (pre-scheduled) ses üretimi
+
+**Kullanım Senaryosu**: Kullanıcılar ritim pratiği yaparken bu aracı kullanır.
+
+---
+
+### 4.4. Quiz Modülleri
+
+Quiz modülleri, kullanıcıların nota okuma ve enstrüman çalma becerilerini test eder:
+
+| Modül | Teknoloji | Özellikler |
+|-------|-----------|------------|
+| **QuizPortrait** | VexFlow, React | Nota okuma testi, dizek gösterimi, skor takibi |
+| **QuizPerformance** | Web Audio API, Pitchy | Enstrüman çalma testi, pitch tespiti, entonasyon analizi |
+
+#### 4.4.1. Quiz Seçim Ekranı (`Quiz.tsx`)
+
+**Açıklama**: Kullanıcının Portre (Nota Okuma) veya Performans (Enstrüman ile Çalma) quiz modlarından birini seçmesini sağlayan ana menü bileşenidir.
+
+**Özellikler**:
+- İki quiz modu kartı
+- Her mod için açıklayıcı bilgi
+- Görsel ikonlar
+
+#### 4.4.2. Portre Quiz Modu (`QuizPortrait.tsx`)
+
+**Açıklama**: Portre (Nota Okuma) quiz modu bileşenidir. VexFlow kütüphanesini kullanarak dizek üzerinde rastgele notalar gösterir ve kullanıcıdan doğru notayı seçmesini ister.
+
+**Teknik Özellikler**:
+- Süre seçimi (1 dk, 5 dk, sonsuz)
+- Nota aralığı ayarı (min-maks MIDI değerleri: 52-84)
+- Arıza sesler (diyez/bemol) açma/kapama
+- Gerçek zamanlı skor takibi
+- Doğru/yanlış geri bildirimi (görsel feedback)
+- Sonuç ekranı (skor, doğru/yanlış sayıları)
+- Otomatik sonuç kaydetme (API entegrasyonu)
+
+**Kullanılan Kütüphaneler**:
+- VexFlow: Müzik notasyonu render etme
+- React Hooks: State yönetimi
+
+**Kullanım Senaryosu**: Kullanıcılar nota okuma becerilerini test eder. Dizek üzerinde gösterilen notanın ismini seçerler.
+
+#### 4.4.3. Performans Quiz Modu (`QuizPerformance.tsx`)
+
+**Açıklama**: Performans (Enstrüman ile Çalma) quiz modu bileşenidir. Mikrofon girişini analiz ederek kullanıcının çaldığı notayı tespit eder ve entonasyon analizi yapar.
+
+**Teknik Özellikler**:
+- Süre seçimi (1 dk, 5 dk, sonsuz)
+- Nota aralığı ayarı
+- Arıza sesler açma/kapama
+- Gerçek zamanlı pitch tespiti (pitchy kütüphanesi)
+- Cents cinsinden entonasyon gösterimi
+- Görsel pitch göstergesi (flat-merkez-sharp)
+- Tamamlanan nota sayısı takibi
+- Doğruluk yüzdesi hesaplama
+- Sonuç ekranı
+- Otomatik sonuç kaydetme
+
+**Pitch Detection Algoritması**:
+- Web Audio API ile ses örnekleme
+- Pitchy kütüphanesi ile frekans tespiti
+- ±15 cents tolerans ile başarı kriteri
+- Gerçek zamanlı görsel geri bildirim
+
+**Kullanım Senaryosu**: Kullanıcılar klarnetleriyle çalarak notaları doğru seslendirmeye çalışırlar. Mikrofon izni gerektirir.
+
+---
+
+### 4.5. Dersler Modülü
+
+#### 4.5.1. Dersler Sayfası (`Courses.tsx`)
+
+**Açıklama**: Mevcut dersleri listeler ve kullanıcıların derslere kaydolmasını/ayrılmasını sağlar. Admin kullanıcılar için yeni ders ekleme ve silme özellikleri sunar.
+
+**Özellikler**:
+- Ders listesi görüntüleme
+- Derse kayıt olma/ayrılma
+- Admin için ders ekleme formu
+- Admin için ders silme
+- Kayıt durumu göstergesi
+
+**Kullanım Senaryosu**: Kullanıcılar mevcut dersleri görüntüler ve istedikleri derslere kayıt olurlar. Adminler yeni ders ekleyebilir veya mevcut dersleri silebilir.
+
+---
+
+### 4.6. Yardımcı Bileşenler ve Utilities
+
+#### 4.6.1. Pitch Hesaplama Utilities (`pitch.ts`)
+
+**Açıklama**: Pitch (ses yüksekliği) hesaplamaları için yardımcı fonksiyonlar içerir.
+
+**Fonksiyonlar**:
+- `freqToNoteNumber(freq: number): number`: Frekansı MIDI nota numarasına çevirir
+- `noteNameFromNumber(midi: number): string`: MIDI numarasını nota ismine çevirir
+- `centsOffFromPitch(freq: number, midi: number): number`: Pitch sapmasını cents cinsinden hesaplar
+- `detectPitchTimeDomain(buffer: Float32Array, sampleRate: number): number | null`: Zaman domain'inde pitch tespiti yapar
+
+**Matematiksel Formüller**:
+- MIDI to Frequency: `f = 440 * 2^((midi - 69) / 12)`
+- Cents Calculation: `cents = 1200 * log2(freq / targetFreq)`
+
+---
+
+## 5. Veritabanı Tasarımı (Database Design)
+
+### 5.1. Veritabanı Şeması
+
+Veritabanı yapısı beş tablo ve ilişkilerden oluşmaktadır. Şema, ilişkisel veritabanı prensiplerine uygun olarak tasarlanmıştır.
+
+### 5.2. Tablo Yapıları
+
+#### 5.2.1. users (Kullanıcılar Tablosu)
+
+**Açıklama**: Sistem kullanıcılarının bilgilerini saklar.
+
+| Sütun | Tip | Kısıtlamalar | Açıklama |
+|-------|-----|--------------|----------|
+| `id` | INTEGER | PRIMARY KEY, AUTO_INCREMENT | Benzersiz kullanıcı kimliği |
+| `username` | VARCHAR | UNIQUE, NOT NULL | Kullanıcı adı |
+| `email` | VARCHAR | UNIQUE, NOT NULL | E-posta adresi |
+| `password` | VARCHAR | NOT NULL | Bcrypt ile hash'lenmiş şifre |
+| `account_type` | ENUM | DEFAULT: 'STANDARD' | Kullanıcı rolü (STANDARD, ADMIN, SUPERADMIN) |
+| `created_at` | TIMESTAMP | - | Hesap oluşturulma tarihi |
+| `updated_at` | TIMESTAMP | - | Son güncelleme tarihi |
+
+**İndeksler**: PRIMARY KEY (`id`), UNIQUE (`username`, `email`)
+
+#### 5.2.2. course (Dersler Tablosu)
+
+**Açıklama**: Eğitim içeriklerini (dersleri) saklar.
+
+| Sütun | Tip | Kısıtlamalar | Açıklama |
+|-------|-----|--------------|----------|
+| `id` | INTEGER | PRIMARY KEY, AUTO_INCREMENT | Benzersiz ders kimliği |
+| `title` | VARCHAR | NOT NULL | Ders başlığı |
+| `description` | TEXT | - | Ders açıklaması |
+| `image_url` | VARCHAR | - | Ders görseli URL'i |
+| `level` | VARCHAR | - | Ders seviyesi |
+
+**İndeksler**: PRIMARY KEY (`id`)
+
+#### 5.2.3. portrait_result (Portre Quiz Sonuçları Tablosu)
+
+**Açıklama**: Kullanıcıların portre (nota okuma) quiz sonuçlarını saklar.
+
+| Sütun | Tip | Kısıtlamalar | Açıklama |
+|-------|-----|--------------|----------|
+| `id` | INTEGER | PRIMARY KEY, AUTO_INCREMENT | Benzersiz sonuç kimliği |
+| `user_id` | INTEGER | FOREIGN KEY, NOT NULL | Kullanıcı referansı (users.id) |
+| `duration` | INTEGER | - | Quiz süresi (dakika) |
+| `correct_answers` | INTEGER | - | Doğru cevap sayısı |
+| `wrong_answers` | INTEGER | - | Yanlış cevap sayısı |
+| `score_percentage` | FLOAT | - | Başarı yüzdesi (0-100) |
+| `completion_time` | INTEGER | - | Tamamlanma süresi (saniye) |
+| `created_at` | TIMESTAMP | - | Sonuç kayıt tarihi |
+
+**İndeksler**: PRIMARY KEY (`id`), FOREIGN KEY (`user_id` → `users.id`), INDEX (`user_id`, `created_at`)
+
+#### 5.2.4. performance_result (Performans Quiz Sonuçları Tablosu)
+
+**Açıklama**: Kullanıcıların performans (enstrüman çalma) quiz sonuçlarını saklar.
+
+| Sütun | Tip | Kısıtlamalar | Açıklama |
+|-------|-----|--------------|----------|
+| `id` | INTEGER | PRIMARY KEY, AUTO_INCREMENT | Benzersiz sonuç kimliği |
+| `user_id` | INTEGER | FOREIGN KEY, NOT NULL | Kullanıcı referansı (users.id) |
+| `duration` | INTEGER | - | Quiz süresi (dakika) |
+| `notes_completed` | INTEGER | - | Tamamlanan nota sayısı |
+| `accuracy_percentage` | FLOAT | - | Doğruluk yüzdesi (0-100) |
+| `time_taken` | INTEGER | - | Geçen süre (saniye) |
+| `created_at` | TIMESTAMP | - | Sonuç kayıt tarihi |
+
+**İndeksler**: PRIMARY KEY (`id`), FOREIGN KEY (`user_id` → `users.id`), INDEX (`user_id`, `created_at`)
+
+#### 5.2.5. user_courses (Kullanıcı-Ders İlişki Tablosu)
+
+**Açıklama**: Kullanıcıların derslere kayıt durumunu saklar. Many-to-Many ilişkiyi yönetir.
+
+| Sütun | Tip | Kısıtlamalar | Açıklama |
+|-------|-----|--------------|----------|
+| `user_id` | INTEGER | FOREIGN KEY, NOT NULL | Kullanıcı referansı (users.id) |
+| `course_id` | INTEGER | FOREIGN KEY, NOT NULL | Ders referansı (course.id) |
+
+**İndeksler**: COMPOSITE PRIMARY KEY (`user_id`, `course_id`), FOREIGN KEY (`user_id` → `users.id`), FOREIGN KEY (`course_id` → `course.id`)
+
+### 5.3. İlişkisel Yapı
+
+**İlişki Türleri**:
+
+Aşağıdaki tablo, veritabanı tabloları arasındaki ilişkileri göstermektedir:
+
+| İlişki Türü | Tablo 1 | Tablo 2 | Açıklama |
+|-------------|---------|---------|----------|
+| **One-to-Many (1:N)** | users | portrait_result | Bir kullanıcının birden fazla portre quiz sonucu |
+| **One-to-Many (1:N)** | users | performance_result | Bir kullanıcının birden fazla performans quiz sonucu |
+| **Many-to-Many (M:N)** | users | course | Kullanıcı-ders kayıt ilişkisi (user_courses tablosu üzerinden) |
+
+### 5.4. Veritabanı Diyagramı
+
+Aşağıdaki Mermaid diyagramı, veritabanı şemasının görsel temsilini sunmaktadır:
+
+```mermaid
+erDiagram
+    USERS ||--o{ PORTRAIT_RESULT : "bire-çok (1:N)"
+    USERS ||--o{ PERFORMANCE_RESULT : "bire-çok (1:N)"
+    USERS }|--|{ COURSE : "çoka-çok (M:N)"
+    
+    USERS {
+        int id PK
+        string username UK
+        string email UK
+        string password
+        enum account_type "STANDARD, ADMIN, SUPERADMIN"
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    COURSE {
+        int id PK
+        string title
+        text description
+        string image_url
+        string level
+    }
+    
+    PORTRAIT_RESULT {
+        int id PK
+        int user_id FK
+        int duration
+        int correct_answers
+        int wrong_answers
+        float score_percentage
+        int completion_time
+        timestamp created_at
+    }
+    
+    PERFORMANCE_RESULT {
+        int id PK
+        int user_id FK
+        int duration
+        int notes_completed
+        float accuracy_percentage
+        int time_taken
+        timestamp created_at
+    }
+    
+    USER_COURSES {
+        int user_id FK
+        int course_id FK
+    }
+```
+
+---
+
+## 6. Güvenlik Mimarisi (Security Architecture)
+
+### 6.1. Kimlik Doğrulama (Authentication)
+
+#### 6.1.1. JWT (JSON Web Token) Kullanımı
+
+**Açıklama**: Sistem, stateless kimlik doğrulama için JWT standardını kullanmaktadır.
+
+**Token Yapısı**:
+- **Header**: Algoritma bilgisi (HS256)
+- **Payload**: Kullanıcı bilgileri (id, username, accountType)
+- **Signature**: HMAC SHA256 ile imzalanmış token
+
+**Token Yaşam Döngüsü**:
+1. Kullanıcı girişi sonrası token üretilir
+2. Token localStorage'da saklanır
+3. Her API isteğinde `Authorization: Bearer <token>` header'ı ile gönderilir
+4. Backend'te token doğrulanır ve kullanıcı bilgisi çözülür
+5. Token süresi dolduğunda yeni token gereklidir
+
+**Güvenlik Önlemleri**:
+- Token süresi yapılandırılabilir (varsayılan: 24 saat)
+- Token imzalama için güçlü secret key kullanımı
+- HTTPS kullanımı önerilir (production)
+
+#### 6.1.2. Şifre Güvenliği
+
+**Hash Algoritması**: bcrypt
+
+**Özellikler**:
+- Şifreler asla düz metin olarak saklanmaz
+- bcrypt salt mekanizması ile güvenlik artırılır
+- Minimum şifre uzunluğu: 6 karakter
+- Şifreler API yanıtlarında asla döndürülmez
+
+**Hash İşlemi**:
+```typescript
+const salt = await bcrypt.genSalt();
+const hashedPassword = await bcrypt.hash(password, salt);
+```
+
+### 6.2. Yetkilendirme (Authorization)
+
+#### 6.2.1. Rol Tabanlı Erişim Kontrolü (RBAC)
+
+**Rol Hiyerarşisi**:
+
+Aşağıdaki tablo, her rolün sahip olduğu yetkileri detaylı olarak göstermektedir:
+
+| Yetki | STANDARD | ADMIN | SUPERADMIN |
+|-------|----------|-------|------------|
+| Kendi profilini görüntüleme | ✓ | ✓ | ✓ |
+| Kendi quiz sonuçlarını görüntüleme | ✓ | ✓ | ✓ |
+| Derslere kayıt olma/ayrılma | ✓ | ✓ | ✓ |
+| Tüm kullanıcıları listeleme | - | ✓ | ✓ |
+| Kullanıcı detaylarını görüntüleme | - | ✓ | ✓ |
+| Kullanıcı şifre değiştirme | - | ✓ | ✓ |
+| Kullanıcı quiz sonuçlarını görüntüleme | - | ✓ | ✓ |
+| Ders oluşturma ve silme | - | ✓ | ✓ |
+| Kullanıcı rol değiştirme | - | - | ✓ |
+| Kullanıcı silme | - | - | ✓ |
+
+**Uygulama**: JWT token payload'ında `accountType` bilgisi bulunur ve endpoint'lerde kontrol edilir.
+
+### 6.3. API Güvenliği
+
+**CORS (Cross-Origin Resource Sharing)**:
+- Backend'te CORS yapılandırması mevcuttur
+- Belirli origin'lere izin verilir
+- Production'da sadece güvenilir domain'lere izin verilmelidir
+
+**Input Validation**:
+- Tüm kullanıcı girdileri validate edilir
+- SQL injection önleme (TypeORM parametreli sorgular)
+- XSS (Cross-Site Scripting) önleme (React otomatik escaping)
+
+---
+
+## 7. Deployment ve Altyapı (Deployment and Infrastructure)
+
+### 7.1. Konteynerizasyon Stratejisi
+
+#### 7.1.1. Docker Yapılandırması
+
+Aşağıdaki tablo, Docker container yapılandırmalarını özetlemektedir:
+
+| Container | Base Image | Port | Volume | Açıklama |
+|-----------|------------|------|--------|----------|
+| **Backend** | Node.js 18 | 8080 | `./backend:/app` | NestJS uygulaması, hot-reload desteği |
+| **Frontend** | Nginx 1.27 | 80 | Build output | Statik dosya servisi |
+| **Database** | MySQL 8.4 | 3306 | `db_data:/var/lib/mysql` | Veri kalıcılığı için persistent volume |
+
+**Environment Variables**:
+
+| Container | Değişkenler |
+|-----------|-------------|
+| **Backend** | JWT_SECRET, JWT_EXPIRATION, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME |
+| **Database** | MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, MYSQL_ROOT_PASSWORD |
+
+#### 7.1.2. Docker Compose Yapılandırması
+
+**Servis Bağımlılıkları**:
+- Backend → Database (depends_on)
+- Frontend → Backend (depends_on)
+
+**Volume Yönetimi**:
+- `db_data`: MySQL veri kalıcılığı
+- `./backend:/app`: Development için kod senkronizasyonu
+
+### 7.2. Port Yapılandırması
+
+Aşağıdaki tablo, servislerin port yapılandırmasını göstermektedir:
+
+| Servis | Port | Protokol | Açıklama |
+|--------|------|----------|----------|
+| **Frontend** | 80 | HTTP | Web arayüzü |
+| **Backend API** | 8080 | HTTP | RESTful API |
+| **MySQL** | 3306 | TCP | Veritabanı bağlantısı |
+
+### 7.3. Ortam Değişkenleri
+
+**Backend Environment Variables**:
+
+| Değişken | Tip | Varsayılan | Açıklama |
+|----------|-----|------------|----------|
+| `JWT_SECRET` | string | - | JWT token imzalama anahtarı (min: 32 karakter) |
+| `JWT_EXPIRATION` | number | 86400000 | Token geçerlilik süresi (ms, 24 saat) |
+| `DB_HOST` | string | localhost | Veritabanı sunucu adresi |
+| `DB_PORT` | number | 3306 | Veritabanı port numarası |
+| `DB_USER` | string | app | Veritabanı kullanıcı adı |
+| `DB_PASSWORD` | string | app_password | Veritabanı şifresi |
+| `DB_NAME` | string | clarinet_lessons | Veritabanı adı |
+| `FRONTEND_URL` | string | http://localhost:5173 | CORS için frontend URL'i |
+
+**Güvenlik Notları**:
+- Production'da environment variables güvenli şekilde yönetilmelidir
+- Secret'lar asla kod deposuna commit edilmemelidir
+- Docker secrets veya external secret management kullanılmalıdır
+
+---
+
+## 8. Sonuç ve Değerlendirme (Conclusion and Evaluation)
+
+### 8.1. Proje Özeti
+
+Clarinet Lessons projesi, modern web teknolojileri kullanılarak geliştirilmiş kapsamlı bir müzik eğitimi platformudur. Sistem, nota okuma, enstrüman çalma, akort ve metronom gibi müzik eğitimi için gerekli tüm araçları içermektedir. Backend'te NestJS ile RESTful API mimarisi, frontend'te React ile interaktif kullanıcı arayüzü sağlanmıştır.
+
+### 8.2. Teknik Başarılar
+
+1. **Modüler Mimari**: NestJS'in modüler yapısı sayesinde bakımı kolay ve ölçeklenebilir bir sistem oluşturulmuştur.
+
+2. **Güvenlik**: JWT tabanlı kimlik doğrulama ve rol tabanlı erişim kontrolü ile güvenli bir sistem sağlanmıştır.
+
+3. **Gerçek Zamanlı İşleme**: Web Audio API kullanımı ile gerçek zamanlı ses analizi ve pitch tespiti gerçekleştirilmiştir.
+
+4. **Kullanıcı Deneyimi**: React ile responsive ve interaktif bir kullanıcı arayüzü oluşturulmuştur.
+
+5. **Konteynerizasyon**: Docker ile tamamen konteynerize edilmiş bir deployment stratejisi uygulanmıştır.
+
+### 8.3. Gelecek Geliştirmeler
+
+1. **Performans Optimizasyonu**: 
+   - Veritabanı sorgu optimizasyonu
+   - Frontend code splitting
+   - API response caching
+
+2. **Özellik Geliştirmeleri**:
+   - Video ders içerikleri
+   - Sosyal özellikler (kullanıcı etkileşimi)
+   - Mobil uygulama geliştirme
+
+3. **Güvenlik İyileştirmeleri**:
+   - Rate limiting
+   - CSRF koruması
+   - Daha detaylı audit logging
+
+4. **Test Kapsamı**:
+   - Unit testler
+   - Integration testler
+   - End-to-end testler
+
+### 8.4. Akademik Değer
+
+Bu çalışma, modern web teknolojileri kullanılarak müzik eğitimi için interaktif bir platform geliştirilmesini ve bu platformun teknik mimarisinin dokümante edilmesini sağlamıştır. Sistem, gerçek zamanlı ses işleme, RESTful API tasarımı, güvenlik mimarisi ve konteynerizasyon gibi modern yazılım geliştirme prensiplerini uygulamaktadır.
+
+---
+
+## Referanslar (References)
+
+1. NestJS Documentation. (2024). *NestJS - A progressive Node.js framework*. https://nestjs.com/
+
+2. React Documentation. (2024). *React - A JavaScript library for building user interfaces*. https://react.dev/
+
+3. TypeORM Documentation. (2024). *TypeORM - An ORM for TypeScript and JavaScript*. https://typeorm.io/
+
+4. Web Audio API. (2024). *MDN Web Docs*. https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
+
+5. JWT.io. (2024). *JSON Web Token Introduction*. https://jwt.io/introduction
+
+6. Docker Documentation. (2024). *Docker - Containerization platform*. https://docs.docker.com/
+
+7. MySQL Documentation. (2024). *MySQL 8.4 Reference Manual*. https://dev.mysql.com/doc/
+
+---
+
+## Ekler (Appendices)
+
+### Ek A: API Endpoint Özet Tablosu
+
+Aşağıdaki tablo, tüm API endpoint'lerini, HTTP metodlarını, kimlik doğrulama gereksinimlerini ve açıklamalarını içermektedir:
+
+| Modül | Endpoint | Method | Auth | Açıklama |
+|-------|----------|--------|------|----------|
+| **Auth** | `/api/auth/login` | POST | - | Kullanıcı girişi |
+| **Auth** | `/api/auth/register` | POST | - | Kullanıcı kaydı |
+| **Auth** | `/api/auth/profile` | GET | ✓ | Token doğrulama |
+| **Users** | `/api/users/me` | GET | ✓ | Kullanıcı profili |
+| **Quiz** | `/api/quiz/portrait/results` | POST | ✓ | Portre quiz sonucu kaydetme |
+| **Quiz** | `/api/quiz/portrait/results/me` | GET | ✓ | Portre quiz sonuçları listeleme |
+| **Quiz** | `/api/quiz/performance/results` | POST | ✓ | Performans quiz sonucu kaydetme |
+| **Quiz** | `/api/quiz/performance/results/me` | GET | ✓ | Performans quiz sonuçları listeleme |
+| **Courses** | `/api/courses` | GET | - | Ders listesi |
+| **Courses** | `/api/courses` | POST | ✓ | Ders oluşturma |
+| **Courses** | `/api/courses/:id` | DELETE | ✓ | Ders silme |
+| **Courses** | `/api/courses/:id/enroll` | POST | ✓ | Derse kayıt olma |
+| **Courses** | `/api/courses/:id/withdraw` | POST | ✓ | Dersten ayrılma |
+| **Admin** | `/api/admin/users` | GET | ✓ | Kullanıcı listesi |
+| **Admin** | `/api/admin/users/:id` | GET | ✓ | Kullanıcı detayı |
+| **Admin** | `/api/admin/users/:id/password` | POST | ✓ | Şifre değiştirme |
+| **Admin** | `/api/admin/users/:id/results/portrait` | GET | ✓ | Kullanıcı portre sonuçları |
+| **Admin** | `/api/admin/users/:id/results/performance` | GET | ✓ | Kullanıcı performans sonuçları |
+| **Admin** | `/api/admin/users/:id` | DELETE | ✓ | Kullanıcı silme (SuperAdmin) |
+| **System** | `/api` | GET | - | Health check |
+| **System** | `/api/me` | GET | ✓ | Kullanıcı bilgisi |
+
+**Açıklama**: ✓ = Kimlik doğrulama gereklidir, - = Kimlik doğrulama gerektirmez
+
+---
+
+### Ek B: Frontend Component Hiyerarşisi
+
+Aşağıdaki tablo, frontend bileşenlerinin hiyerarşik yapısını ve kategorilerini göstermektedir:
+
+| Kategori | Bileşen | Alt Bileşenler | Route |
+|----------|---------|----------------|-------|
+| **Layout** | AppLayout | - | - |
+| **Auth** | Login | - | `/login` |
+| **Pages** | Home | - | `/` |
+| **Pages** | Profile | AdminPanel | `/profile` |
+| **Pages** | UserDetail | - | `/users/:id` |
+| **Tools** | Tuner | - | `/tuner` |
+| **Tools** | Metronome | - | `/metronome` |
+| **Quiz** | Quiz | - | `/quiz` |
+| **Quiz** | QuizPortrait | - | `/quiz/portrait` |
+| **Quiz** | QuizPerformance | - | `/quiz/performance` |
+| **Courses** | Courses | - | `/courses` |
+| **Utils** | Protected | - | - |
+| **Utils** | AuthContext | - | - |
+| **Utils** | pitch.ts | - | - |
+
+**Bileşen Hiyerarşisi**:
+```
+AppLayout
+├── Home
+├── Login
+├── Profile
+│   └── AdminPanel
+├── UserDetail
+├── Tuner
+├── Metronome
+├── Quiz
+├── QuizPortrait
+├── QuizPerformance
+└── Courses
+```
+
+---
+
+**Rapor Tarihi**: 2024
+**Versiyon**: 1.0
+**Hazırlayan**: Teknik Dokümantasyon Ekibi

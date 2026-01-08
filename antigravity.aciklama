@@ -1,0 +1,132 @@
+# Proje Kod ve Yapı Dokümantasyonu (antigravity.aciklama)
+
+Bu doküman, projenin klasör yapısını, dosyaların ne işe yaradığını ve içerisindeki kod bloklarının işlevlerini detaylı bir şekilde açıklamaktadır. Sunumlarınızda teknik referans olarak kullanabilirsiniz.
+
+---
+
+## 1. .vscode
+**Genel Tanım:** Visual Studio Code editörü için projeye özel ayarların bulunduğu klasördür.
+*   **settings.json**: Editörün davranışını özelleştiren ayarlar (örneğin otomatik formatlama, girinti boyutları vb.) burada tutulur. Takım içindeki herkesin aynı editör standartlarını kullanmasını sağlar.
+
+---
+
+## 2. backend
+**Genel Tanım:** Uygulamanın sunucu tarafı mantığını, veritabanı işlemlerini ve API servislerini barındıran NestJS projesidir.
+
+### 2.a dist (Distribution)
+*   **Ne işe yarar?**: TypeScript kodlarının derlenip JavaScript'e çevrildiği klasördür.
+*   **Detay:** Sunucu çalıştırılırken `src` klasöründeki kodlar değil, buradaki derlenmiş `.js` dosyaları kullanılır. `build` komutu ile oluşturulur.
+
+### 2.b node_modules
+*   **Ne işe yarar?**: Projenin çalışması için gereken dış kütüphanelerin (dependencies) indirildiği klasördür.
+*   **Detay:** `nest`, `typeorm`, `passport` gibi kütüphaneler burada bulunur. Bu klasör asla elle değiştirilmez veya Git'e yüklenmez.
+
+### 2.c src (Source Code)
+Uygulamanın asıl kaynak kodlarının bulunduğu ana dizindir.
+
+#### **Ana Dosyalar**
+*   **main.ts**:
+    *   **İşlevi**: Uygulamanın giriş noktasıdır (Entry Point).
+    *   **Kod Detayı**: `NestFactory.create(AppModule)` fonksiyonu ile NestJS uygulamasını başlatır. CORS ayarlarını (farklı domainlerden gelen isteklere izin verme) burada etkinleştirir ve uygulamayı belirli bir porttan (örneğin 3000) dinlemeye başlar.
+*   **app.module.ts**:
+    *   **İşlevi**: Uygulamanın kök modülüdür.
+    *   **Kod Detayı**: `TypeOrmModule` ile veritabanı bağlantısını yapılandırır (SQLite kullanımı, Entity'lerin yüklenmesi). Diğer modülleri (`AuthModule`, `UsersModule` vb.) buraya `imports` dizisi ile ekleyerek ana uygulamaya bağlar.
+*   **app.controller.ts**:
+    *   **İşlevi**: Temel API isteklerini karşılar.
+    *   **Kod Detayı**: `/` isteğine "Hello World" döner (Health Check). `/me` endpoint'i ile giriş yapmış kullanıcının bilgilerini token üzerinden çözer ve döner.
+
+#### **Modüller (Modules)**
+*   **auth/** (Kimlik Doğrulama):
+    *   `auth.service.ts`: Kullanıcı adı/şifre doğrulama ve JWT (JSON Web Token) üretme mantığını içerir.
+    *   `auth.controller.ts`: `/auth/login` ve `/auth/register` isteklerini karşılar. Login işleminde `AuthService`'i çağırarak token üretir ve kullanıcıya döner.
+    *   `jwt.strategy.ts`: Gelen isteklerdeki Token'ın geçerli olup olmadığını kontrol eden güvenlik katmanıdır.
+*   **users/** (Kullanıcı Yönetimi):
+    *   `users.service.ts`: Veritabanındaki `User` tablosu üzerinde CRUD (Oluşturma, Okuma, Güncelleme, Silme) işlemlerini yapar.
+    *   `user.entity.ts`: Veritabanındaki `users` tablosunun şemasını (sütunlar: id, username, password, accountType vb.) tanımlar.
+*   **courses/** (Dersler):
+    *   `courses.controller.ts`: Ders ekleme, silme, listeleme isteklerini yönetir.
+    *   `course.entity.ts`: Derslerin başlık, açıklama, resim gibi özelliklerini tanımlar. Ayrıca `User` ile Çoka-Çok (ManyToMany) ilişkisi kurarak hangi öğrencinin hangi derse kayıtlı olduğunu tutar.
+*   **quiz/** (Test ve Oyunlar):
+    *   `performance-result.entity.ts`: Kullanıcının enstrüman ile çaldığı performans testlerinin sonuçlarını (doğruluk oranı, süre) tutan tablo yapısıdır.
+    *   `portrait-result.entity.ts`: Nota okuma testlerinin sonuçlarını tutan tablo yapısıdır.
+    *   `performance-result.controller.ts` & `portrait-result.controller.ts`: Frontend'den gelen oyun sonuçlarını veritabanına kaydeder (`saveResult`) ve kullanıcının geçmiş sonuçlarını listeler (`getMyResults`).
+
+### 2.d Diğer Dosyalar
+*   **Dockerfile**: Uygulamanın Docker konteyneri içinde nasıl çalışacağını tanımlar (Node imajını seçer, bağımlılıkları yükler, portu açar).
+*   **package.json**: Proje adı, versiyonu, çalıştırılabilir scriptler (`start`, `build`, `test`) ve kullanılan kütüphanelerin listesi burada bulunur.
+*   **tsconfig.json**: TypeScript derleyici ayarlarını içerir.
+
+---
+
+## 3. frontend
+**Genel Tanım:** React ile geliştirilmiş, kullanıcı arayüzünü oluşturan istemci taraflı uygulamadır.
+
+### 3.a dist
+*   **Ne işe yarar?**: Frontend projesinin "build" alınmış, yani yayına hazır hale getirilmiş, sıkıştırılmış dosyalarıdır.
+*   **Detay**: Tarayıcılar TypeScript ve JSX'i doğrudan çalıştıramadığı için kodlar burada standart HTML/CSS/JS formatına dönüştürülür.
+
+### 3.b node_modules
+*   **Detay**: React, Vite, TailwindCSS gibi frontend kütüphanelerinin yüklü olduğu klasördür.
+
+### 3.c src (Source Code)
+*   **main.tsx**: React uygulamasının DOM'a (Document Object Model) monte edildiği (render edildiği) ana dosyadır.
+*   **router.tsx**: Uygulamadaki sayfa yönlendirmelerini ayarlar. Hangi URL'de hangi bileşenin (`<Home />`, `<Login />` vb.) açılacağını belirler.
+
+#### **Views (Sayfalar)**
+*   **Home.tsx (Ana Sayfa)**:
+    *   Uygulamanın karşılama ekranıdır.
+    *   Kullanıcıyı motive edici metinler ve özellik tanıtımları içerir.
+*   **Login.tsx (Giriş/Kayıt)**:
+    *   Kullanıcıdan email/şifre alır.
+    *   Backend `/auth/login` servisine istek atar.
+    *   Gelen Token'ı tarayıcı hafızasına (localStorage) kaydeder.
+*   **Tuner.tsx (Akort Aleti)**:
+    *   **Teknoloji**: `Web Audio API` ve `MediaStream` kullanır.
+    *   **Kod Mantığı**: Mikrofon izni ister, gelen ses dalgalarını analiz eder (`AnalyserNode`).
+    *   **Algoritma**: Sesin frekansını (Hz) bulur, nota karşılığını hesaplar.
+    *   **Özellik**: "Türk Müziği" butonu ile frekansları Si bemol klarnete göre transpoze eder (+5 yarım ses kaydırır).
+*   **Metronome.tsx (Metronom)**:
+    *   **Teknoloji**: `Web Audio API` (OscillatorNode) kullanır.
+    *   **Kod Mantığı**: Seçilen BPM (dakikadaki vuruş sayısı) hızında hassas "bip" sesleri üretir.
+    *   **Görsel**: Zaman ölçüsüne (4/4, 3/4) göre görsel dairelerle vuruşu takip eder.
+*   **Quiz.tsx**:
+    *   Kullanıcıya "Portre Modu" veya "Performans Modu" seçeneklerini sunan menü sayfasıdır.
+*   **QuizPortrait.tsx (Nota Okuma Oyunu)**:
+    *   Rastgele notalar üretir ve dizek üzerinde gösterir.
+    *   Kullanıcıdan doğru nota ismini seçmesini ister.
+    *   Skoru takip eder ve oyun bitince backend'e kaydeder.
+*   **QuizPerformance.tsx (Çalma Oyunu)**:
+    *   Ekranda bir nota gösterir.
+    *   Mikrofonu dinler (Tuner mantığı ile).
+    *   Kullanıcının üflediği ses, ekrandaki nota ile eşleşirse "Doğru" kabul eder ve bir sonraki soruya geçer.
+
+#### **Ui & Utils**
+*   **ui/AppLayout.tsx**: Tüm sayfalarda ortak olan Üst Menü (Navbar) ve Alt Bilgi (Footer) yapısını içerir. Sayfa içerikleri bu çerçevenin içine yerleşir (`<Outlet />`).
+*   **ui/Protected.tsx**: Giriş yapmamış kullanıcıların girmemesi gereken sayfaları (Profil, Dersler vb.) korur. Kullanıcı giriş yapmamışsa Login sayfasına yönlendirir.
+*   **utils/pitch.ts**: Ses frekansını notaya çeviren matematiksel fonksiyonları barındırır.
+
+### 3.d Diğer Dosyalar
+*   **vite.config.ts**: Vite yapılandırma dosyasıdır. Geliştirme sunucusu ayarları ve build optimizasyonları burada yapılır.
+*   **styles.css**: TailwindCSS direktiflerini içeren ana stil dosyasıdır.
+
+---
+
+## 4. DEPLOYMENT.md
+**İşlevi**: Projenin canlı sunucuya (Production) nasıl kurulacağını anlatan rehber dosyadır.
+**İçeriği**: Gerekli ortam değişkenleri, Docker komutları, Nginx ayarları gibi kurulum adımlarını içerir.
+
+---
+
+## 5. docker-compose.yml
+**İşlevi**: Çoklu Docker konteynerlerini tanımlamak ve çalıştırmak için kullanılır.
+**Kod Detayı**:
+*   `postgres` (veya sqlite): Veritabanı servisini tanımlar.
+*   `backend`: Backend imajını build eder, port yönlendirmesini yapar ve veritabanına bağlar.
+*   `frontend`: Frontend imajını build eder ve sunucuya servis eder.
+*   Tek bir komutla (`docker-compose up`) tüm sistemi ayağa kaldırmayı sağlar.
+
+---
+
+## 6. package-lock.json
+**İşlevi**: Projede kullanılan bağımlılıkların (kütüphanelerin) **tam** versiyonlarını kilitler.
+**Önemi**: "Benim bilgisayarımda çalışıyor ama sende çalışmıyor" sorununu önler. Herkesin birebir aynı kütüphane versiyonlarını kullandığından emin olur. `npm install` komutu bu dosyayı okuyarak kurulum yapar.
