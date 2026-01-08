@@ -22,12 +22,6 @@ type PerformanceRow = {
     createdAt: string
 }
 
-/**
- * Kullanıcı Detay Sayfası (Admin)
- * 
- * Adminlerin belirli bir kullanıcının detaylarını ve quiz sonuçlarını
- * görüntülemesini sağlayan sayfa.
- */
 const UserDetail: React.FC = () => {
     const { id } = useParams()
     const { token } = useAuth()
@@ -76,7 +70,6 @@ const UserDetail: React.FC = () => {
     return (
         <div className="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto space-y-8">
-                {/* Back Button */}
                 <Link
                     to="/profile"
                     className="inline-flex items-center space-x-2 text-teal-600 hover:text-teal-800 transition-colors"
@@ -87,7 +80,6 @@ const UserDetail: React.FC = () => {
                     <span className="font-medium">Geri Dön</span>
                 </Link>
 
-                {/* User Header Card */}
                 <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                         <div className="flex items-center space-x-6">
@@ -108,7 +100,6 @@ const UserDetail: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Portrait Quiz Results */}
                 <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                     <div className="bg-gradient-to-r from-teal-500 to-blue-500 px-8 py-4">
                         <h3 className="text-2xl font-bold text-white flex items-center space-x-2">
@@ -160,7 +151,6 @@ const UserDetail: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Performance Quiz Results */}
                 <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                     <div className="bg-gradient-to-r from-indigo-500 to-purple-500 px-8 py-4">
                         <h3 className="text-2xl font-bold text-white flex items-center space-x-2">

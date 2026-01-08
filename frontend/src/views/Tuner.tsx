@@ -1,13 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { centsOffFromPitch, detectPitchTimeDomain, freqToNoteNumber, noteNameFromNumber } from '../utils/pitch'
 
-/**
- * Akort Aleti (Tuner) Bileşeni
- * 
- * Web Audio API kullanarak mikrofon girişini dinler ve
- * pitchy kütüphanesi ile anlık frekans tespiti yapar.
- * Türk Müziği modu (Si bemol klarnet transpozisyonu) desteği içerir.
- */
 const Tuner: React.FC = () => {
 	const [hasPermission, setHasPermission] = useState<boolean | null>(null)
 	const [frequency, setFrequency] = useState<number | null>(null)
@@ -46,7 +39,7 @@ const Tuner: React.FC = () => {
 				stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false }, video: false })
 				const source = ac.createMediaStreamSource(stream)
 				const analyser = ac.createAnalyser()
-				analyser.fftSize = 4096 // Higher resolution for better bass accuracy
+				analyser.fftSize = 4096
 				analyserRef.current = analyser
 				source.connect(analyser)
 				bufferRef.current = new Float32Array(new ArrayBuffer(analyser.fftSize * 4))
@@ -69,12 +62,11 @@ const Tuner: React.FC = () => {
 				setFrequency(freq)
 				const midi = freqToNoteNumber(freq)
 
-				// Apply Transposition Logic here
 				const isTurkish = isTurkishModeRef.current
 				const displayMidi = isTurkish ? midi + 5 : midi
 
 				setNote(noteNameFromNumber(displayMidi))
-				setCents(centsOffFromPitch(freq, midi)) // Cents always relative to real pitch
+				setCents(centsOffFromPitch(freq, midi))
 			} else {
 				setFrequency(null)
 				setNote('—')
@@ -100,12 +92,10 @@ const Tuner: React.FC = () => {
 
 	return (
 		<div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-			{/* Ambient Background Glow */}
 			<div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-[100px] transition-colors duration-500 opacity-20 pointer-events-none
 				${inTune ? 'bg-teal-400' : nearTune ? 'bg-yellow-400' : 'bg-red-500'}`}
 			/>
 
-			{/* Mode Toggle */}
 			<div className="z-20 absolute top-8 flex bg-slate-800/50 backdrop-blur-md p-1 rounded-xl border border-slate-700/50">
 				<button
 					onClick={() => toggleMode('piano')}
@@ -121,7 +111,6 @@ const Tuner: React.FC = () => {
 				</button>
 			</div>
 
-			{/* permission Pending */}
 			{hasPermission === null && (
 				<div className="z-10 text-center space-y-4 animate-fade-in">
 					<div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -129,7 +118,6 @@ const Tuner: React.FC = () => {
 				</div>
 			)}
 
-			{/* Error State */}
 			{hasPermission === false && (
 				<div className="z-10 bg-red-500/10 border border-red-500/50 p-6 rounded-2xl max-w-md text-center backdrop-blur-sm">
 					<svg className="w-12 h-12 text-red-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -138,40 +126,34 @@ const Tuner: React.FC = () => {
 				</div>
 			)}
 
-			{/* Tuner UI */}
 			{hasPermission === true && (
 				<div className="z-10 w-full max-w-2xl flex flex-col items-center space-y-8 mt-12">
 
-					{/* Gauge Container */}
 					<div className="relative w-full aspect-[2/1] max-w-[600px] mb-8">
 						<svg viewBox="0 0 200 100" className="w-full h-full drop-shadow-2xl overflow-visible">
-							{/* Arc Definition */}
 							<defs>
 								<linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-									<stop offset="0%" stopColor="#ef4444" />   {/* Red -50 */}
-									<stop offset="30%" stopColor="#fbbf24" />   {/* Yellow start */}
-									<stop offset="40%" stopColor="#22c55e" />   {/* Green Start (-10 cents) */}
-									<stop offset="60%" stopColor="#22c55e" />   {/* Green End (+10 cents) */}
-									<stop offset="70%" stopColor="#fbbf24" />   {/* Yellow end */}
-									<stop offset="100%" stopColor="#ef4444" />  {/* Red +50 */}
+									<stop offset="0%" stopColor="#ef4444" />
+									<stop offset="30%" stopColor="#fbbf24" />
+									<stop offset="40%" stopColor="#22c55e" />
+									<stop offset="60%" stopColor="#22c55e" />
+									<stop offset="70%" stopColor="#fbbf24" />
+									<stop offset="100%" stopColor="#ef4444" />
 								</linearGradient>
 							</defs>
 
-							{/* Background Ticks */}
 							{[...Array(11)].map((_, i) => {
-								const val = i * 10 - 50 // -50 to +50
+								const val = i * 10 - 50
 								const isCenter = val === 0
 								const rot = (val / 50) * 90
 								return (
 									<g key={i} transform={`translate(100, 100) rotate(${rot})`}>
-										{/* Tick Line */}
 										<line
 											x1="0" y1="-85" x2="0" y2={isCenter ? "-70" : "-80"}
 											stroke="currentColor"
 											strokeWidth={isCenter ? 1.5 : 0.5}
 											className={isCenter ? "text-white" : "text-slate-500"}
 										/>
-										{/* Text Labels for -50, 0, +50 */}
 										{(val === -50 || val === 0 || val === 50) && (
 											<text
 												x="0" y="-62"
@@ -179,7 +161,7 @@ const Tuner: React.FC = () => {
 												fontSize="4"
 												fill="currentColor"
 												className={`text-slate-400 font-mono ${isCenter ? 'font-bold' : ''}`}
-												transform={`rotate(${-rot} 0 -62)`} // Keep text upright? No, simpler to just rotate with it or better keep simple ticks
+												transform={`rotate(${-rot} 0 -62)`}
 											>
 												{val > 0 ? `+${val}` : val}
 											</text>
@@ -188,7 +170,6 @@ const Tuner: React.FC = () => {
 								)
 							})}
 
-							{/* Main gauge arc for visual guide */}
 							<path
 								d="M 10 100 A 90 90 0 0 1 190 100"
 								fill="none"
@@ -198,23 +179,19 @@ const Tuner: React.FC = () => {
 								className="opacity-50"
 							/>
 
-							{/* Needle */}
 							{cents !== null && (
 								<g
 									transform={`translate(100, 100) rotate(${needleAngle})`}
 									className="transition-transform duration-150 ease-out will-change-transform"
 								>
-									{/* Needle Line */}
 									<line x1="0" y1="0" x2="0" y2="-90" stroke="currentColor" strokeWidth="2"
 										className={`${inTune ? 'text-teal-400' : 'text-white'}`}
 									/>
-									{/* Needle Head/Circle */}
 									<circle r="4" className="fill-slate-800 stroke-white stroke-2" />
 								</g>
 							)}
 						</svg>
 
-						{/* Digital Cents Display overlay */}
 						<div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 flex flex-col items-center">
 							<div className={`px-4 py-1 rounded-full text-sm font-bold tracking-wider uppercase border backdrop-blur-md shadow-lg transition-colors
 								${inTune
@@ -230,14 +207,13 @@ const Tuner: React.FC = () => {
 						</div>
 					</div>
 
-					{/* Note Name Display */}
 					<div className="text-center relative">
 						<h1 className={`text-[8rem] leading-none font-bold tracking-tighter transition-all duration-300
 							${inTune
 								? 'text-teal-400 drop-shadow-[0_0_30px_rgba(45,212,191,0.5)] scale-110'
 								: nearTune
 									? 'text-white drop-shadow-xl'
-									: 'text-slate-500' // Dim when not active/playing
+									: 'text-slate-500'
 							}`}
 						>
 							{note.replace(/[0-9]/g, '')}
@@ -257,7 +233,6 @@ const Tuner: React.FC = () => {
 						)}
 					</div>
 
-					{/* Status Text */}
 					<div className={`text-lg font-medium transition-colors duration-300 h-8
 						${inTune ? 'text-teal-400' : 'text-slate-500'}`}
 					>

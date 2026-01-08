@@ -22,12 +22,6 @@ type PerformanceRow = {
 	createdAt: string
 }
 
-/**
- * Profil Sayfası
- * 
- * Kullanıcının hesap bilgilerini ve geçmiş quiz sonuçlarını (Portre ve Performans) gösterir.
- * Admin/Superadmin yetkisine sahip kullanıcılar için "Yönetici Paneli" bileşenini içerir.
- */
 const Profile: React.FC = () => {
 	const { user, token } = useAuth()
 	const [portrait, setPortrait] = useState<PortraitRow[]>([])
@@ -64,7 +58,6 @@ const Profile: React.FC = () => {
 	return (
 		<div className="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8">
 			<div className="max-w-7xl mx-auto space-y-8">
-				{/* Profile Header Card */}
 				<div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
 					<div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
 						<div className="flex items-center space-x-6">
@@ -82,7 +75,6 @@ const Profile: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Admin Panel */}
 				{(user.accountType === 'ADMIN' || user.accountType === 'SUPERADMIN') && (
 					<div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
 						<div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-8 py-4">
@@ -99,7 +91,6 @@ const Profile: React.FC = () => {
 					</div>
 				)}
 
-				{/* Portrait Quiz Results */}
 				<div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
 					<div className="bg-gradient-to-r from-teal-500 to-blue-500 px-8 py-4">
 						<h3 className="text-2xl font-bold text-white flex items-center space-x-2">
@@ -151,7 +142,6 @@ const Profile: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Performance Quiz Results */}
 				<div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
 					<div className="bg-gradient-to-r from-indigo-500 to-purple-500 px-8 py-4">
 						<h3 className="text-2xl font-bold text-white flex items-center space-x-2">
@@ -207,11 +197,6 @@ const Profile: React.FC = () => {
 
 export default Profile
 
-/**
- * Yönetici Paneli Bileşeni (Profil Sayfası İçinde)
- * 
- * Kullanıcıları listeler, şifre değiştirme, rol atama ve silme işlemlerini yönetir.
- */
 const AdminPanel: React.FC = () => {
 	const { token, user } = useAuth()
 	const [users, setUsers] = useState<any[]>([])

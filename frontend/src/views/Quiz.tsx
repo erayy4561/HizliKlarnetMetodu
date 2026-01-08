@@ -9,12 +9,6 @@ const MicrophoneIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 
-/**
- * Quiz Seçim Ekranı
- * 
- * Kullanıcının Portre (Nota Okuma) veya Performans (Enstrüman ile Çalma)
- * quiz modlarından birini seçmesini sağlayan ana menü bileşenidir.
- */
 const Quiz: React.FC = () => {
     return (
         <div className="bg-gray-50 min-h-[calc(100vh-80px)] flex flex-col items-center justify-center p-4 font-sans">
@@ -23,7 +17,6 @@ const Quiz: React.FC = () => {
                 <p className="text-lg text-gray-500 mt-3">Aşağıdaki modlardan birini seçerek pratiğe başla.</p>
             </div>
             <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8">
-                {/* Portre Modu Kartı */}
                 <a href="/quiz/portrait" className="group block bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                     <div className="flex items-center justify-center h-16 w-16 rounded-full bg-teal-100 text-teal-500 mb-5">
                         <BookOpenIcon className="w-8 h-8" />
@@ -35,7 +28,6 @@ const Quiz: React.FC = () => {
                     </span>
                 </a>
 
-                {/* Performans Modu Kartı */}
                 <a href="/quiz/performance" className="group block bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                     <div className="flex items-center justify-center h-16 w-16 rounded-full bg-red-100 text-red-500 mb-5">
                         <MicrophoneIcon className="w-8 h-8" />

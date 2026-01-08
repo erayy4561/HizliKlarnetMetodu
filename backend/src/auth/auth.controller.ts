@@ -10,11 +10,6 @@ export class AuthController {
         private usersService: UsersService
     ) { }
 
-    /**
-     * Kullanıcı girişi yapar.
-     * @param req - { username, password } içeren obje
-     * @returns JWT token içeren obje
-     */
     @Post('login')
     async login(@Body() req) {
         console.log('[AUTH CONTROLLER] Login request received:', { username: req.username });
@@ -31,20 +26,11 @@ export class AuthController {
         return this.authService.login(user);
     }
 
-    /**
-     * Yeni kullanıcı kaydı oluşturur.
-     * @param createUserDto - Yeni kullanıcı bilgilerini içeren obje
-     * @returns JWT token içeren obje
-     */
     @Post('register')
     async register(@Body() createUserDto) {
         return this.authService.register(createUserDto);
     }
 
-    /**
-     * Token'dan kullanıcı profilini döner.
-     * Frontend token kontrolü için kullanılır.
-     */
     @UseGuards(JwtAuthGuard)
     @Get('profile')
     async getProfile(@Request() req) {

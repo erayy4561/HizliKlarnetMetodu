@@ -12,18 +12,11 @@ const GamepadIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="6" x2="10" y1="12" y2="12" /><line x1="8" x2="8" y1="10" y2="14" /><path d="M17.5 15C19.4 15 21 13.4 21 11.5C21 9.6 19.4 8 17.5 8C15.6 8 14 9.6 14 11.5C14 13.4 15.6 15 17.5 15Z" /><path d="M4.53 12.47a5 5 0 0 0 5.44 5.44l1.43-1.43a2 2 0 0 1 0-2.83l-2.17-2.17a2 2 0 0 1-2.83 0l-1.87 1.87Z" /><path d="m12.47 4.53 1.87 1.87a2 2 0 0 1 0 2.83l-2.17 2.17a2 2 0 0 1-2.83 0L7.9 9.97a5 5 0 0 0 5.44-5.44Z" /></svg>
 );
 
-/**
- * Ana Sayfa Bileşeni
- * 
- * Uygulamanın açılış sayfasıdır. Pazarlama içeriği, özellik tanıtımları
- * ve eğitmen bilgisini içerir.
- */
 const Home: React.FC = () => {
     const { token } = useAuth();
 
     return (
         <div className="bg-gray-50 text-gray-800">
-            {/* Karşılama Alanı */}
             <section className="text-center py-20 px-4 sm:px-6 lg:px-8 bg-white shadow-sm">
                 <div className="animate-fade-in">
                     <h1 className="text-5xl md:text-6xl font-extrabold font-serif leading-tight">
@@ -43,7 +36,6 @@ const Home: React.FC = () => {
                 </div>
             </section>
 
-            {/* Özellikler Alanı */}
             <section className="py-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
@@ -70,7 +62,6 @@ const Home: React.FC = () => {
                 </div>
             </section>
 
-            {/* Eğitmen Hakkında Alanı */}
             <section className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center">
                     <div className="order-2 md:order-1">

@@ -34,12 +34,6 @@ const GearIcon = (props: React.SVGProps<SVGSVGElement>) => (
 	</svg>
 )
 
-/**
- * Performans Quiz Modu (Enstrüman ile Çalma)
- * 
- * Mikrofon girişini analiz ederek kullanıcının çaldığı notayı tespit eder.
- * Pitch detector kullanarak entonasyon (cents) ve doğruluk analizi yapar.
- */
 const QuizPerformance: React.FC = () => {
 	const { token } = useAuth()
 
@@ -117,7 +111,6 @@ const QuizPerformance: React.FC = () => {
 		return () => clearInterval(t)
 	}, [running, duration])
 
-	// Finish on timeout
 	useEffect(() => {
 		if (duration > 0 && timeLeft !== null && timeLeft <= 0 && running) {
 			finish()
@@ -197,7 +190,6 @@ const QuizPerformance: React.FC = () => {
 				setLastCents(cents)
 				setAttempts(a => a + 1)
 
-				// Success window: +/- 15 cents for better UX
 				if (Math.abs(cents) <= 15) {
 					setHits(h => h + 1)
 					setNotesCompleted(n => n + 1)
@@ -266,7 +258,6 @@ const QuizPerformance: React.FC = () => {
 		return `${m}:${s.toString().padStart(2, '0')}`
 	}
 
-	// Settings Modal
 	const renderSettingsModal = () => {
 		if (!settingsOpen) return null
 		return (
@@ -281,7 +272,6 @@ const QuizPerformance: React.FC = () => {
 						</button>
 					</div>
 					<div className="p-6 space-y-6">
-						{/* Range Slider / Select */}
 						<div>
 							<label className="block text-sm font-medium text-gray-700 mb-2">Nota Aralığı</label>
 							<div className="flex gap-2 items-center">
@@ -314,7 +304,6 @@ const QuizPerformance: React.FC = () => {
 							<p className="text-xs text-gray-400 mt-1">Sadece bu aralıktaki notalar sorulacak.</p>
 						</div>
 
-						{/* Accidentals Toggle */}
 						<div className="flex items-center justify-between">
 							<div>
 								<div className="text-sm font-medium text-gray-700">Arıza Sesler</div>
@@ -345,7 +334,6 @@ const QuizPerformance: React.FC = () => {
 			<div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
 				{renderSettingsModal()}
 				<div className="bg-white max-w-lg w-full rounded-2xl shadow-xl overflow-hidden relative">
-					{/* Gear Button */}
 					<button
 						onClick={() => setSettingsOpen(true)}
 						className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
@@ -394,7 +382,6 @@ const QuizPerformance: React.FC = () => {
 							</div>
 						</div>
 
-						{/* Quick Settings Preview */}
 						<div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-600 flex justify-between items-center cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => setSettingsOpen(true)}>
 							<span>
 								<strong>Aralık:</strong> {getNoteName(minMidi)} - {getNoteName(maxMidi)}
@@ -465,7 +452,6 @@ const QuizPerformance: React.FC = () => {
 	return (
 		<div className={`min-h-[calc(100vh-4rem)] flex flex-col transition-colors duration-300 ${feedback === 'success' ? 'bg-green-50' : 'bg-gray-50'
 			}`}>
-			{/* Header / HUD */}
 			<div className="bg-white border-b border-gray-200 px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
 				<div className="flex items-center space-x-4">
 					<button
@@ -489,14 +475,11 @@ const QuizPerformance: React.FC = () => {
 				</div>
 			</div>
 
-			{/* Game Content */}
 			<div className="flex-1 flex flex-col items-center justify-center p-4 space-y-8">
-				{/* Staff Card */}
 				<div className="bg-white rounded-xl shadow-lg p-4 transform transition-all hover:scale-[1.01]">
 					<div ref={containerRef} className="rounded-lg overflow-hidden bg-white" />
 				</div>
 
-				{/* Pitch Visualizer */}
 				<div className="w-full max-w-md space-y-2">
 					<div className="flex justify-between text-xs text-gray-400 font-medium uppercase tracking-wider">
 						<span>Flat (Bemol)</span>
@@ -504,13 +487,10 @@ const QuizPerformance: React.FC = () => {
 						<span>Sharp (Diyez)</span>
 					</div>
 					<div className="h-6 bg-gray-200 rounded-full relative overflow-hidden shadow-inner">
-						{/* Center Marker */}
 						<div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gray-400 transform -translate-x-1/2 z-10" />
 
-						{/* Green Zone */}
 						<div className="absolute left-1/2 top-0 bottom-0 w-1/4 bg-green-200/50 transform -translate-x-1/2" />
 
-						{/* Indicator */}
 						{typeof lastCents === 'number' && (
 							<div
 								className={`absolute top-0 bottom-0 w-2 rounded-full transform -translate-x-1/2 transition-all duration-100 ${Math.abs(lastCents) <= 15 ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-red-400'

@@ -12,11 +12,6 @@ export class PortraitResultController {
         private resultRepo: Repository<PortraitResult>,
     ) { }
 
-    /**
-     * Yeni bir portre quiz sonucu kaydeder.
-     * @param req - Kullanıcı bilgisi (userId)
-     * @param body - Quiz sonuç verileri (skor, doğru/yanlış vb.)
-     */
     @UseGuards(JwtAuthGuard)
     @Post('results')
     async saveResult(@Request() req, @Body() body: any) {
@@ -28,9 +23,6 @@ export class PortraitResultController {
         return saved;
     }
 
-    /**
-     * Giriş yapan kullanıcının geçmiş portre quiz sonuçlarını listeler.
-     */
     @UseGuards(JwtAuthGuard)
     @Get('results/me')
     async getMyResults(@Request() req) {

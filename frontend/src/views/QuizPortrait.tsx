@@ -5,7 +5,6 @@ import { api } from '../utils/api'
 
 type DurationOption = 0 | 1 | 5
 
-// Pitch classes
 const ALL_OPTIONS = [
 	'Do', 'Do#', 'Reb', 'Re', 'Re#', 'Mib', 'Mi', 'Fa', 'Fa#', 'Solb', 'Sol', 'Sol#', 'Lab', 'La', 'La#', 'Sib', 'Si'
 ]
@@ -55,13 +54,6 @@ const GearIcon = (props: React.SVGProps<SVGSVGElement>) => (
 	</svg>
 )
 
-/**
- * Portre Quiz Modu (Nota Okuma)
- * 
- * VexFlow kütüphanesini kullanarak dizek üzerinde rastgele notalar gösterir.
- * Kullanıcıdan doğru notayı seçmesi istenir.
- * Ayarlar modalı ile nota aralığı ve arıza değiştiriciler (diyez/bemol) yönetilebilir.
- */
 const QuizPortrait: React.FC = () => {
 	const [duration, setDuration] = useState<DurationOption>(1)
 
@@ -227,7 +219,6 @@ const QuizPortrait: React.FC = () => {
 						</button>
 					</div>
 					<div className="p-6 space-y-6">
-						{/* Range Slider / Select */}
 						<div>
 							<label className="block text-sm font-medium text-gray-700 mb-2">Nota Aralığı</label>
 							<div className="flex gap-2 items-center">
@@ -260,7 +251,6 @@ const QuizPortrait: React.FC = () => {
 							<p className="text-xs text-gray-400 mt-1">Sadece bu aralıktaki notalar sorulacak.</p>
 						</div>
 
-						{/* Accidentals Toggle */}
 						<div className="flex items-center justify-between">
 							<div>
 								<div className="text-sm font-medium text-gray-700">Arıza Sesler</div>
@@ -291,7 +281,6 @@ const QuizPortrait: React.FC = () => {
 			<div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
 				{renderSettingsModal()}
 				<div className="bg-white max-w-lg w-full rounded-2xl shadow-xl overflow-hidden relative">
-					{/* Gear Button */}
 					<button
 						onClick={() => setSettingsOpen(true)}
 						className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
@@ -340,7 +329,6 @@ const QuizPortrait: React.FC = () => {
 							</div>
 						</div>
 
-						{/* Quick Settings Preview */}
 						<div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-600 flex justify-between items-center cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => setSettingsOpen(true)}>
 							<span>
 								<strong>Aralık:</strong> {getNoteName(minMidi)} - {getNoteName(maxMidi)}
@@ -416,7 +404,6 @@ const QuizPortrait: React.FC = () => {
 			feedback === 'error' ? 'bg-red-50' :
 				'bg-gray-50'
 			}`}>
-			{/* Header / HUD */}
 			<div className="bg-white border-b border-gray-200 px-4 py-3 shadow-sm flex items-center justify-between sticky top-0 z-10">
 				<div className="flex items-center space-x-4">
 					<button
@@ -430,7 +417,6 @@ const QuizPortrait: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Score Hud */}
 				<div className="flex-1 flex justify-center">
 					<div className={`text-2xl font-bold ${score >= 80 ? 'text-green-500' : score >= 60 ? 'text-yellow-500' : 'text-gray-400'}`}>
 						%{isNaN(score) ? 0 : score}
@@ -449,15 +435,12 @@ const QuizPortrait: React.FC = () => {
 				</div>
 			</div>
 
-			{/* Game Content */}
 			<div className="flex-1 flex flex-col items-center justify-center p-4">
 
-				{/* Staff Card */}
 				<div className="bg-white rounded-xl shadow-lg p-4 mb-8 transform transition-all hover:scale-[1.01]">
 					<div ref={canvasRef} className="rounded-lg overflow-hidden bg-white" />
 				</div>
 
-				{/* Controls */}
 				<div className="w-full max-w-5xl">
 					<div className="flex flex-wrap justify-center gap-3">
 						{ALL_OPTIONS

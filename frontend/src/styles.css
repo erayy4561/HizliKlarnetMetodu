@@ -9,12 +9,10 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-/* Smooth scrolling */
 html {
 	scroll-behavior: smooth;
 }
 
-/* Form styles */
 .form { 
 	display: grid; 
 	gap: 10px; 
@@ -34,7 +32,6 @@ input, button {
 	border-left: 4px solid #b00020;
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
 	width: 10px;
 }

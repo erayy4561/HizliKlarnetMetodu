@@ -64,22 +64,14 @@ const BookIcon = (props: React.SVGProps<SVGSVGElement>) => (
 	</svg>
 )
 
-/**
- * Ana Uygulama Düzeni (Layout)
- * 
- * Tüm sayfaları kapsayan ana çerçeve.
- * Yan menü (Sidebar), mobil menü ve ana içerik alanını (Outlet) yönetir.
- */
 const AppLayout: React.FC = () => {
 	const { user, token, logout } = useAuth()
 	const { t } = useTranslation()
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-teal-50 via-blue-50 to-indigo-50">
-			{/* Modern Navigation Bar */}
 			<header className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-teal-100/50 shadow-sm">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="flex items-center justify-between h-16 md:h-20">
-						{/* Logo/Brand */}
 						<Link
 							to="/"
 							className="flex items-center space-x-2 group"
@@ -93,7 +85,6 @@ const AppLayout: React.FC = () => {
 							</div>
 						</Link>
 
-						{/* Navigation Links */}
 						<nav className="hidden md:flex items-center space-x-1">
 							<NavLink
 								to="/"
@@ -161,7 +152,6 @@ const AppLayout: React.FC = () => {
 							</NavLink>
 						</nav>
 
-						{/* Auth Section */}
 						<div className="flex items-center space-x-2">
 							{token ? (
 								<div className="flex items-center space-x-3">
@@ -195,7 +185,6 @@ const AppLayout: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Mobile Navigation */}
 				<div className="md:hidden border-t border-teal-100/50 bg-white/50 backdrop-blur-sm">
 					<nav className="flex items-center justify-around px-4 py-2">
 						<NavLink
@@ -256,7 +245,6 @@ const AppLayout: React.FC = () => {
 				</div>
 			</header>
 
-			{/* Main Content */}
 			<main className="min-h-[calc(100vh-4rem)]">
 				<Outlet />
 			</main>

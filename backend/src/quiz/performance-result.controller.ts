@@ -12,11 +12,6 @@ export class PerformanceResultController {
         private resultRepo: Repository<PerformanceResult>,
     ) { }
 
-    /**
-     * Yeni bir performans quiz sonucu kaydeder.
-     * @param req - Kullanıcı bilgisi (userId)
-     * @param body - Quiz sonuç verileri (doğruluk oranı, süre vb.)
-     */
     @UseGuards(JwtAuthGuard)
     @Post('results')
     async saveResult(@Request() req, @Body() body: any) {
@@ -28,9 +23,6 @@ export class PerformanceResultController {
         return saved;
     }
 
-    /**
-     * Giriş yapan kullanıcının geçmiş performans quiz sonuçlarını listeler.
-     */
     @UseGuards(JwtAuthGuard)
     @Get('results/me')
     async getMyResults(@Request() req) {

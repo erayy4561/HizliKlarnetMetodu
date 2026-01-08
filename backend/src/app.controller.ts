@@ -10,20 +10,11 @@ export class AppController {
     private readonly usersService: UsersService
   ) { }
 
-  /**
-   * Basit health-check endpointi.
-   * @returns "Hello World!" mesajı
-   */
   @Get()
   getHello(): string {
     return this.appService.getHello();
   }
 
-  /**
-   * Giriş yapmış kullanıcının kendi profil bilgilerini getirir.
-   * @param req - Token'dan çözülen user bilgisi
-   * @returns User objesi (şifre hariç)
-   */
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getProfile(@Request() req) {

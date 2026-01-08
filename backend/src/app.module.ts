@@ -20,7 +20,7 @@ import { AdminModule } from './admin/admin.module';
       password: process.env.DB_TYPE === 'postgres' ? (process.env.DB_PASSWORD || 'app_password') : undefined,
       database: process.env.DB_TYPE === 'postgres' ? (process.env.DB_NAME || 'clarinet_lessons') : 'database.sqlite',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true, // Enable auto-sync for development
+      synchronize: true,
       ssl: process.env.NODE_ENV === 'production' && process.env.DB_TYPE === 'postgres' ? { rejectUnauthorized: false } : false,
     }),
     AuthModule,

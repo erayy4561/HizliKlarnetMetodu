@@ -40,12 +40,6 @@ const UserPlusIcon = (props: React.SVGProps<SVGSVGElement>) => (
 	</svg>
 )
 
-/**
- * Giriş ve Kayıt Sayfası
- * 
- * Kullanıcıların sisteme giriş yapmasını (login) veya yeni hesap oluşturmasını (register) sağlar.
- * AuthContext üzerinden kimlik doğrulama işlemlerini yönetir.
- */
 const Login: React.FC = () => {
 	const { login, register } = useAuth()
 
@@ -103,7 +97,6 @@ const Login: React.FC = () => {
 	return (
 		<div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
 			<div className="max-w-6xl w-full">
-				{/* Header */}
 				<div className="text-center mb-12">
 					<div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-teal-500 to-blue-500 mb-4 shadow-lg">
 						<LoginIcon className="h-8 w-8 text-white" />
@@ -116,16 +109,13 @@ const Login: React.FC = () => {
 					</p>
 				</div>
 
-				{/* Two Column Layout */}
 				<div className="grid md:grid-cols-2 gap-8">
-					{/* Left Side - Login */}
 					<div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
 						<h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
 							<LoginIcon className="h-6 w-6 text-teal-500" />
 							<span>Giriş Yap</span>
 						</h3>
 						<form onSubmit={onLoginSubmit} className="space-y-6">
-							{/* Username Field */}
 							<div>
 								<label htmlFor="login-username" className="block text-sm font-medium text-gray-700 mb-2">
 									Kullanıcı Adı
@@ -146,7 +136,6 @@ const Login: React.FC = () => {
 								</div>
 							</div>
 
-							{/* Password Field */}
 							<div>
 								<label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-2">
 									Şifre
@@ -167,7 +156,6 @@ const Login: React.FC = () => {
 								</div>
 							</div>
 
-							{/* Error Message */}
 							{loginError && (
 								<div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg flex items-center space-x-2">
 									<svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
@@ -177,7 +165,6 @@ const Login: React.FC = () => {
 								</div>
 							)}
 
-							{/* Submit Button */}
 							<button
 								type="submit"
 								disabled={loginLoading}
@@ -201,14 +188,12 @@ const Login: React.FC = () => {
 						</form>
 					</div>
 
-					{/* Right Side - Register */}
 					<div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
 						<h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
 							<UserPlusIcon className="h-6 w-6 text-indigo-500" />
 							<span>Kayıt Ol</span>
 						</h3>
 						<form onSubmit={onRegisterSubmit} className="space-y-6">
-							{/* Email Field */}
 							<div>
 								<label htmlFor="register-email" className="block text-sm font-medium text-gray-700 mb-2">
 									E-posta
@@ -229,7 +214,6 @@ const Login: React.FC = () => {
 								</div>
 							</div>
 
-							{/* Username Field */}
 							<div>
 								<label htmlFor="register-username" className="block text-sm font-medium text-gray-700 mb-2">
 									Kullanıcı Adı
@@ -250,7 +234,6 @@ const Login: React.FC = () => {
 								</div>
 							</div>
 
-							{/* Password Field */}
 							<div>
 								<label htmlFor="register-password" className="block text-sm font-medium text-gray-700 mb-2">
 									Şifre
@@ -272,7 +255,6 @@ const Login: React.FC = () => {
 								</div>
 							</div>
 
-							{/* Error Message */}
 							{registerError && (
 								<div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg flex items-center space-x-2">
 									<svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
@@ -282,7 +264,6 @@ const Login: React.FC = () => {
 								</div>
 							)}
 
-							{/* Submit Button */}
 							<button
 								type="submit"
 								disabled={registerLoading}

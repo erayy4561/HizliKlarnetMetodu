@@ -5,12 +5,6 @@ type TimeSig = '4/4' | '3/4' | '2/4' | '6/8'
 const MIN_BPM = 40
 const MAX_BPM = 200
 
-/**
- * Metronom Bileşeni
- * 
- * Web Audio API kullanarak hassas zamanlamalı (scheduling) bir metronom sağlar.
- * BPM, Zaman Ölçüsü (Time Signature) ayarları ve görsel vuruş göstergeleri içerir.
- */
 const Metronome: React.FC = () => {
 	const [bpm, setBpm] = useState(100)
 	const [timeSig, setTimeSig] = useState<TimeSig>('4/4')
@@ -110,13 +104,11 @@ const Metronome: React.FC = () => {
 			<div className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 text-center">
 				<h2 className="text-3xl font-bold font-serif text-gray-800 mb-4">Metronom</h2>
 
-				{/* BPM Göstergesi */}
 				<div className="my-6">
 					<span className="text-7xl font-bold text-teal-600 tracking-tighter">{bpm}</span>
 					<span className="text-xl font-medium text-gray-500 ml-2">BPM</span>
 				</div>
 
-				{/* BPM Ayar Çubuğu */}
 				<div className="my-8">
 					<input
 						type="range"
@@ -132,7 +124,6 @@ const Metronome: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Zaman Ölçüsü Seçimi */}
 				<div className="mb-8">
 					<h3 className="text-lg font-semibold text-gray-600 mb-3">Zaman Ölçüsü</h3>
 					<div className="flex justify-center items-center bg-gray-100 rounded-full p-1 space-x-1">
@@ -149,7 +140,6 @@ const Metronome: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Vuruş Göstergeleri */}
 				<div className="flex justify-center space-x-3 h-8 items-center mb-8">
 					{Array.from({ length: barBeats }).map((_, i) => (
 						<div
@@ -159,7 +149,6 @@ const Metronome: React.FC = () => {
 					))}
 				</div>
 
-				{/* Başlat / Durdur Butonu */}
 				<button
 					onClick={isRunning ? stop : start}
 					className={`w-full py-4 px-8 rounded-xl text-white font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg ${isRunning ? 'bg-red-500 hover:bg-red-600' : 'bg-teal-500 hover:bg-teal-600'}`}

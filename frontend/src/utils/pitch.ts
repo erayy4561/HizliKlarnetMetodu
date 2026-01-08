@@ -21,7 +21,6 @@ export function centsOffFromPitch(frequency: number, noteNumber: number): number
 	return Math.floor(1200 * Math.log2(frequency / refFreq))
 }
 
-// Auto-correlation pitch detection (YIN-like simplified)
 export function detectPitchTimeDomain(buf: Float32Array, sampleRate: number): number | null {
 	const SIZE = buf.length
 	let rms = 0

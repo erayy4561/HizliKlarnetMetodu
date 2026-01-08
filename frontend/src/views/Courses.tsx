@@ -9,12 +9,6 @@ type Course = {
     createdAt: string
 }
 
-/**
- * Dersler Sayfası
- * 
- * Mevcut dersleri listeler ve kullanıcıların derslere kaydolmasını/ayrılmasını sağlar.
- * Admin kullanıcılar için yeni ders ekleme ve silme özellikleri sunar.
- */
 const Courses: React.FC = () => {
     const { token, user } = useAuth()
     const [courses, setCourses] = useState<Course[]>([])
@@ -114,7 +108,6 @@ const Courses: React.FC = () => {
                     <p className="text-gray-600 text-lg">Klarnet yolculuğunuzda size rehberlik edecek eğitimler</p>
                 </div>
 
-                {/* Admin Create Form */}
                 {isAdmin && (
                     <div className="mb-12 bg-white p-6 rounded-xl shadow-lg border border-indigo-100">
                         <h3 className="text-xl font-bold text-indigo-900 mb-4">Yeni Ders Ekle</h3>
@@ -148,7 +141,6 @@ const Courses: React.FC = () => {
                     </div>
                 )}
 
-                {/* Course Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {courses.map(course => {
                         const isEnrolled = enrolledIds.has(course.id)
