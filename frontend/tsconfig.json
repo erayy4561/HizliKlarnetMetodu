@@ -13,7 +13,8 @@
     "strict": true,
     "baseUrl": "."
   },
-  "include": ["src"]
+  "include": ["src"],
+  "types": ["vite/client"]
 }
 
 
