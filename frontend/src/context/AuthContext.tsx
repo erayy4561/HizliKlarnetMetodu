@@ -39,11 +39,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 	async function loadMe() {
 		if (!token) return
+		console.log('[loadMe] Token:', token)
+		console.log('[loadMe] Authorization header:', api.defaults.headers.common['Authorization'])
 		try {
 			const res = await api.get('/me')
 			setUser(res.data)
-		} catch {
-			setUser(null)
+		} catch (error: any) {
+			console.error('loadMe error:', error)
+			// Sadece yetkilendirme hatalarında çıkış yap
+			if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+				setUser(null)
+				setToken(null)
+				localStorage.removeItem('token')
+			}
 		}
 	}
 
