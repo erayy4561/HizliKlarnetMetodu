@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Renderer, Stave, StaveNote, Accidental, Voice, Formatter } from 'vexflow'
 import { useAuth } from '../context/AuthContext'
-import axios from 'axios'
+import { api } from '../utils/api'
 
 type DurationOption = 0 | 1 | 5
 
@@ -48,9 +48,6 @@ function pitchClassFromName(name: string): number {
 	}
 }
 
-const api = axios.create({ baseURL: '/api' })
-
-// Gear Icon
 const GearIcon = (props: React.SVGProps<SVGSVGElement>) => (
 	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
 		<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
@@ -66,10 +63,8 @@ const GearIcon = (props: React.SVGProps<SVGSVGElement>) => (
  * Ayarlar modalı ile nota aralığı ve arıza değiştiriciler (diyez/bemol) yönetilebilir.
  */
 const QuizPortrait: React.FC = () => {
-	// Game Config State
 	const [duration, setDuration] = useState<DurationOption>(1)
 
-	// Init with localStorage
 	const [minMidi, setMinMidi] = useState(() => {
 		const stored = localStorage.getItem('quiz_portrait_min')
 		return stored ? Number(stored) : DEFAULT_RANGE.min
@@ -85,14 +80,12 @@ const QuizPortrait: React.FC = () => {
 
 	const [settingsOpen, setSettingsOpen] = useState(false)
 
-	// Persist changes
 	useEffect(() => {
 		localStorage.setItem('quiz_portrait_min', String(minMidi))
 		localStorage.setItem('quiz_portrait_max', String(maxMidi))
 		localStorage.setItem('quiz_portrait_accidentals', JSON.stringify(useAccidentals))
 	}, [minMidi, maxMidi, useAccidentals])
 
-	// Game Running State
 	const [timeLeft, setTimeLeft] = useState<number | null>(null)
 	const [running, setRunning] = useState(false)
 	const [target, setTarget] = useState<NoteTarget | null>(null)
@@ -104,10 +97,8 @@ const QuizPortrait: React.FC = () => {
 	const canvasRef = useRef<HTMLDivElement | null>(null)
 	const rendererRef = useRef<Renderer | null>(null)
 
-	// Helper to generate full list of available midis for dropdowns
 	const availableMidis = Array.from({ length: DEFAULT_RANGE.max - DEFAULT_RANGE.min + 1 }, (_, i) => DEFAULT_RANGE.min + i)
 
-	// initialize renderer
 	useEffect(() => {
 		if (!canvasRef.current) return
 		canvasRef.current.innerHTML = ''
@@ -161,16 +152,14 @@ const QuizPortrait: React.FC = () => {
 		while (attempts < maxAttempts) {
 			const midi = Math.floor(Math.random() * (maxMidi - minMidi + 1)) + minMidi
 			const spec = midiToKeySpec(midi)
-			const isAccidental = [1, 3, 6, 8, 10].includes(spec.pitchClass) // C#, D#, F#, G#, A#
+			const isAccidental = [1, 3, 6, 8, 10].includes(spec.pitchClass)
 
-			// If accidentals are OFF and this is accidental, skip
 			if (!useAccidentals && isAccidental) {
 				attempts++
 				continue
 			}
 			return { ...spec, midi }
 		}
-		// Fallback safety
 		return { ...midiToKeySpec(minMidi), midi: minMidi }
 	}
 
@@ -184,23 +173,20 @@ const QuizPortrait: React.FC = () => {
 	}
 
 	function finish() {
-		stop() // stops the game loop / timer
+		stop()
 		setFinished(true)
 		const total = Math.max(1, correct + wrong)
-		// Calculate final score
 		const finalScore = Math.round((correct / total) * 100)
 
-		// Use a local variable or ref for token if needed, but context 'token' should be available
-		const authToken = localStorage.getItem('token') // Fallback or direct use
+		const authToken = localStorage.getItem('token')
 
 		if (authToken) {
-			api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`
 			void api.post('/quiz/portrait/results', {
 				duration,
 				correctAnswers: correct,
 				wrongAnswers: wrong,
 				scorePercentage: finalScore,
-				completionTime: duration > 0 ? (duration * 60 - (timeLeft ?? 0)) : 0 // infinite mode handling might be different
+				completionTime: duration > 0 ? (duration * 60 - (timeLeft ?? 0)) : 0
 			}).catch(err => console.error("Failed to save result", err))
 		}
 	}
@@ -227,7 +213,6 @@ const QuizPortrait: React.FC = () => {
 	const total = Math.max(1, correct + wrong)
 	const score = Math.round((correct / total) * 100)
 
-	// Render Settings Modal
 	const renderSettingsModal = () => {
 		if (!settingsOpen) return null
 		return (
@@ -301,7 +286,6 @@ const QuizPortrait: React.FC = () => {
 		)
 	}
 
-	// 1. Initial Start Screen
 	if (!running && !finished) {
 		return (
 			<div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
@@ -378,7 +362,6 @@ const QuizPortrait: React.FC = () => {
 		)
 	}
 
-	// 2. Result Screen
 	if (finished) {
 		return (
 			<div className="min-h-[calc(100vh-4rem)] bg-gray-50 flex items-center justify-center p-4">
@@ -428,7 +411,6 @@ const QuizPortrait: React.FC = () => {
 		)
 	}
 
-	// 3. Game Screen
 	return (
 		<div className={`min-h-[calc(100vh-4rem)] flex flex-col transition-colors duration-300 ${feedback === 'success' ? 'bg-green-50' :
 			feedback === 'error' ? 'bg-red-50' :

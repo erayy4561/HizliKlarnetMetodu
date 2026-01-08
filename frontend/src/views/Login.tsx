@@ -49,13 +49,11 @@ const UserPlusIcon = (props: React.SVGProps<SVGSVGElement>) => (
 const Login: React.FC = () => {
 	const { login, register } = useAuth()
 
-	// Login state
 	const [loginUsername, setLoginUsername] = useState('')
 	const [loginPassword, setLoginPassword] = useState('')
 	const [loginError, setLoginError] = useState<string | null>(null)
 	const [loginLoading, setLoginLoading] = useState(false)
 
-	// Register state
 	const [registerUsername, setRegisterUsername] = useState('')
 	const [registerPassword, setRegisterPassword] = useState('')
 	const [registerEmail, setRegisterEmail] = useState('')
@@ -71,7 +69,6 @@ const Login: React.FC = () => {
 		setLoginError(null)
 		setLoginLoading(true)
 
-		// Trim whitespace
 		const username = loginUsername.trim()
 		const password = loginPassword.trim()
 

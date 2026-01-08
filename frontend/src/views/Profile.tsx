@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import axios from 'axios'
+import { api } from '../utils/api'
 
 type PortraitRow = {
 	id: number
@@ -29,16 +29,12 @@ type PerformanceRow = {
  * Admin/Superadmin yetkisine sahip kullanıcılar için "Yönetici Paneli" bileşenini içerir.
  */
 const Profile: React.FC = () => {
-	const { user, loadMe, token } = useAuth()
-	const api = useMemo(() => axios.create({ baseURL: '/api' }), [])
+	const { user, token } = useAuth()
 	const [portrait, setPortrait] = useState<PortraitRow[]>([])
 	const [performance, setPerformance] = useState<PerformanceRow[]>([])
 
-	useEffect(() => { void loadMe() }, [])
-
 	useEffect(() => {
 		if (!token) return
-		api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 		void api.get('/quiz/portrait/results/me').then(r => setPortrait(r.data)).catch(() => setPortrait([]))
 		void api.get('/quiz/performance/results/me').then(r => setPerformance(r.data)).catch(() => setPerformance([]))
 	}, [token])
@@ -218,7 +214,6 @@ export default Profile
  */
 const AdminPanel: React.FC = () => {
 	const { token, user } = useAuth()
-	const api = useMemo(() => axios.create({ baseURL: '/api' }), [])
 	const [users, setUsers] = useState<any[]>([])
 	const [pwdById, setPwdById] = useState<Record<number, string>>({})
 	const [roleById, setRoleById] = useState<Record<number, string>>({})
@@ -227,7 +222,6 @@ const AdminPanel: React.FC = () => {
 
 	useEffect(() => {
 		if (!token) return
-		api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 		api.get('/admin/users')
 			.then(r => setUsers(r.data))
 			.catch(() => setUsers([]))
@@ -259,7 +253,6 @@ const AdminPanel: React.FC = () => {
 		try {
 			await api.post(`/superadmin/users/${id}/role`, { role })
 			alert('Rol başarıyla güncellendi')
-			// Refresh users
 			const response = await api.get('/admin/users')
 			setUsers(response.data)
 		} catch (error) {

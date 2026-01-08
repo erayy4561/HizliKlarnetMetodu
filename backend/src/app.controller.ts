@@ -27,12 +27,6 @@ export class AppController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getProfile(@Request() req) {
-    const user = await this.usersService.findById(req.user.userId);
-    // Sanitize password
-    if (user && user.password) {
-      const { password, ...result } = user;
-      return result;
-    }
-    return user;
+    return this.usersService.findById(req.user.userId);
   }
 }

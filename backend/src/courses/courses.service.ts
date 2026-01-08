@@ -23,6 +23,14 @@ export class CoursesService {
         await this.coursesRepository.delete(id);
     }
 
+    async getEnrollmentsByUser(userId: number): Promise<Course[]> {
+        return this.coursesRepository
+            .createQueryBuilder('course')
+            .innerJoin('course.students', 'student')
+            .where('student.id = :userId', { userId })
+            .getMany();
+    }
+
     async enroll(courseId: number, user: User): Promise<void> {
         const course = await this.coursesRepository.findOne({
             where: { id: courseId },
@@ -30,7 +38,6 @@ export class CoursesService {
         });
         if (course) {
             if (!course.students) course.students = [];
-            // Check if already enrolled
             if (!course.students.find(s => s.id === user.id)) {
                 course.students.push(user);
                 await this.coursesRepository.save(course);

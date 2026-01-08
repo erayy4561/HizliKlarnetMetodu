@@ -83,20 +83,14 @@ export class AdminController {
      */
     @Delete('users/:id')
     async deleteUser(@Param('id') id: string, @Request() req) {
-        // Simple role check (ideally move to Guard)
-        // Note: req.user contains { username, userId, roles: [...] } populated by JwtStrategy
-        // Checking roles array for SUPERADMIN
         const roles = req.user.roles || [];
         if (!roles.includes('SUPERADMIN') && req.user.accountType !== 'SUPERADMIN') {
-            // Fallback check if roles isn't populated but accountType might be (depending on JWT payload strategy)
-            // Let's assume standard role check. If roles is simple [user.accountType]
             throw new ForbiddenException('Only superadmins can delete users');
         }
 
         const userToDelete = await this.userRepo.findOne({ where: { id: +id } });
         if (!userToDelete) throw new NotFoundException('User not found');
 
-        // Prevent self-deletion
         if (userToDelete.id === req.user.userId) {
             throw new BadRequestException('Cannot delete yourself');
         }

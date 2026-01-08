@@ -9,7 +9,6 @@ import { centsOffFromPitch, detectPitchTimeDomain, freqToNoteNumber, noteNameFro
  * Türk Müziği modu (Si bemol klarnet transpozisyonu) desteği içerir.
  */
 const Tuner: React.FC = () => {
-	// 1. Core State & Refs
 	const [hasPermission, setHasPermission] = useState<boolean | null>(null)
 	const [frequency, setFrequency] = useState<number | null>(null)
 	const [note, setNote] = useState<string>('—')
@@ -21,16 +20,13 @@ const Tuner: React.FC = () => {
 	const rafRef = useRef<number | null>(null)
 	const bufferRef = useRef<Float32Array | null>(null)
 
-	// 2. Transposition Mode State
 	const [isTurkishMode, setIsTurkishMode] = useState<boolean>(() => {
 		const saved = localStorage.getItem('tuner_mode')
 		return saved === 'turkish'
 	})
 
-	// Ref to access mode inside the loop without dependency issues
 	const isTurkishModeRef = useRef(isTurkishMode)
 
-	// Sync ref with state
 	useEffect(() => {
 		isTurkishModeRef.current = isTurkishMode
 	}, [isTurkishMode])
@@ -87,7 +83,7 @@ const Tuner: React.FC = () => {
 			rafRef.current = requestAnimationFrame(loop)
 		}
 
-		void init()
+		void init();
 		return () => {
 			if (rafRef.current) cancelAnimationFrame(rafRef.current)
 			if (stream) stream.getTracks().forEach(t => t.stop())
@@ -95,9 +91,6 @@ const Tuner: React.FC = () => {
 		}
 	}, [])
 
-	// Gauge Math
-	// Range: -50 to +50 cents
-	// Angle: -90 (left) to +90 (right), 0 is center
 	const inTune = typeof cents === 'number' && Math.abs(cents) <= 5
 	const nearTune = typeof cents === 'number' && Math.abs(cents) <= 15
 	const centsValue = typeof cents === 'number' ? cents : 0

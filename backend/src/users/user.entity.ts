@@ -22,8 +22,8 @@ export class User {
     password?: string;
 
     @Column({
-        type: 'simple-enum',
-        enum: AccountType,
+        type: 'varchar',
+        length: 20,
         default: AccountType.STANDARD,
         name: 'account_type' // Map to snake_case
     })

@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import axios from 'axios'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { api } from '../utils/api'
 
 type Course = {
     id: number
@@ -17,25 +17,18 @@ type Course = {
  */
 const Courses: React.FC = () => {
     const { token, user } = useAuth()
-    const api = useMemo(() => axios.create({ baseURL: '/api' }), [])
     const [courses, setCourses] = useState<Course[]>([])
     const [enrolledIds, setEnrolledIds] = useState<Set<number>>(new Set())
     const [loading, setLoading] = useState(true)
 
-    // Admin state
     const [newTitle, setNewTitle] = useState('')
     const [newDesc, setNewDesc] = useState('')
     const [creating, setCreating] = useState(false)
 
     const isAdmin = user?.accountType === 'ADMIN' || user?.accountType === 'SUPERADMIN'
 
-    useEffect(() => {
-        fetchData()
-    }, [token])
-
     const fetchData = async () => {
         if (!token) return
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`
         try {
             const [coursesRes, enrolledRes] = await Promise.all([
                 api.get('/courses'),
@@ -49,6 +42,10 @@ const Courses: React.FC = () => {
             setLoading(false)
         }
     }
+
+    useEffect(() => {
+        fetchData()
+    }, [token])
 
     const handleEnroll = async (id: number) => {
         try {

@@ -20,13 +20,11 @@ export class SeedService implements OnModuleInit {
         const defaultEmail = 'erayy4561@gmail.com';
         const defaultPassword = '123456';
 
-        // Kullanıcının zaten var olup olmadığını kontrol et (username'e göre)
         const existingUser = await this.usersRepository.findOne({
             where: { username: defaultUsername }
         });
 
         if (existingUser) {
-            // Kullanıcı varsa e-posta ve rolünü güncelle
             if (existingUser.email !== defaultEmail || existingUser.accountType !== AccountType.SUPERADMIN) {
                 existingUser.email = defaultEmail;
                 existingUser.accountType = AccountType.SUPERADMIN;
@@ -38,11 +36,9 @@ export class SeedService implements OnModuleInit {
             return;
         }
 
-        // Şifreyi hash'le
         const salt = await bcrypt.genSalt();
         const hashedPassword = await bcrypt.hash(defaultPassword, salt);
 
-        // Yeni kullanıcı oluştur
         const superAdmin = this.usersRepository.create({
             username: defaultUsername,
             email: defaultEmail,

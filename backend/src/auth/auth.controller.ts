@@ -1,10 +1,14 @@
-import { Controller, Post, Body, UseGuards, Get, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Request, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { UsersService } from '../users/users.service';
 
-@Controller('auth') // Matches /api/auth prefix via global prefix setting later
+@Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) { }
+    constructor(
+        private authService: AuthService,
+        private usersService: UsersService
+    ) { }
 
     /**
      * Kullanıcı girişi yapar.
@@ -13,10 +17,17 @@ export class AuthController {
      */
     @Post('login')
     async login(@Body() req) {
+        console.log('[AUTH CONTROLLER] Login request received:', { username: req.username });
+        if (!req.username || !req.password) {
+            console.log('[AUTH CONTROLLER] Missing username or password');
+            throw new UnauthorizedException('Username and password are required');
+        }
         const user = await this.authService.validateUser(req.username, req.password);
         if (!user) {
-            return { error: 'Invalid credentials' };
+            console.log('[AUTH CONTROLLER] User validation failed');
+            throw new UnauthorizedException('Invalid credentials');
         }
+        console.log('[AUTH CONTROLLER] Login successful, generating token');
         return this.authService.login(user);
     }
 
@@ -30,14 +41,18 @@ export class AuthController {
         return this.authService.register(createUserDto);
     }
 
-    // Helper for frontend checking token validity
     /**
      * Token'dan kullanıcı profilini döner.
      * Frontend token kontrolü için kullanılır.
      */
     @UseGuards(JwtAuthGuard)
     @Get('profile')
-    getProfile(@Request() req) {
-        return req.user;
+    async getProfile(@Request() req) {
+        console.log('[AUTH CONTROLLER] Profile request received');
+        console.log('[AUTH CONTROLLER] User from token:', req.user);
+        console.log('[AUTH CONTROLLER] Authorization header:', req.headers?.authorization);
+        const user = await this.usersService.findById(req.user.userId);
+        console.log('[AUTH CONTROLLER] User found:', user ? `yes (id: ${user.id})` : 'no');
+        return user;
     }
 }

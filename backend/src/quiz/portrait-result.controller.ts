@@ -20,9 +20,6 @@ export class PortraitResultController {
     @UseGuards(JwtAuthGuard)
     @Post('results')
     async saveResult(@Request() req, @Body() body: any) {
-        // body matches DTO: duration, correctAnswers, wrongAnswers, scorePercentage, completionTime
-        // req.user has userId. We need to attach user.
-        // TypeORM save can take { id: ... } for relations usually.
         const result = this.resultRepo.create({
             ...body,
             user: { id: Number(req.user.userId) } as User

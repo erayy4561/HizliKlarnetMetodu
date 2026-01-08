@@ -28,7 +28,10 @@ export class UsersService {
         return this.usersRepository.findOne({ where: { username } });
     }
 
-    async findById(id: number): Promise<User | null> {
-        return this.usersRepository.findOne({ where: { id } });
+    async findById(id: number): Promise<Omit<User, 'password'> | null> {
+        const user = await this.usersRepository.findOne({ where: { id } });
+        if (!user) return null;
+        const { password, ...result } = user;
+        return result;
     }
 }

@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Renderer, Stave, StaveNote, Accidental, Voice, Formatter } from 'vexflow'
 import { PitchDetector } from 'pitchy'
-import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import { api } from '../utils/api'
 
 type DurationOption = 1 | 5
 
-// Pitch stuff
 const A4 = 440
 function freqToMidi(f: number) { return Math.round(69 + 12 * Math.log2(f / A4)) }
 function midiToFreq(m: number) { return A4 * Math.pow(2, (m - 69) / 12) }
@@ -28,9 +27,6 @@ function getNoteName(midi: number): string {
 	return `${names[pitchClass]}${octave}`
 }
 
-const api = axios.create({ baseURL: '/api' })
-
-// Gear Icon
 const GearIcon = (props: React.SVGProps<SVGSVGElement>) => (
 	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
 		<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
@@ -47,10 +43,8 @@ const GearIcon = (props: React.SVGProps<SVGSVGElement>) => (
 const QuizPerformance: React.FC = () => {
 	const { token } = useAuth()
 
-	// Config
 	const [duration, setDuration] = useState<number>(1)
 
-	// Init with localStorage
 	const [minMidi, setMinMidi] = useState(() => {
 		const stored = localStorage.getItem('quiz_perf_min')
 		return stored ? Number(stored) : DEFAULT_RANGE.min
@@ -66,14 +60,12 @@ const QuizPerformance: React.FC = () => {
 
 	const [settingsOpen, setSettingsOpen] = useState(false)
 
-	// Persist changes
 	useEffect(() => {
 		localStorage.setItem('quiz_perf_min', String(minMidi))
 		localStorage.setItem('quiz_perf_max', String(maxMidi))
 		localStorage.setItem('quiz_perf_accidentals', JSON.stringify(useAccidentals))
 	}, [minMidi, maxMidi, useAccidentals])
 
-	// Game State
 	const [timeLeft, setTimeLeft] = useState<number | null>(null)
 	const [elapsed, setElapsed] = useState(0)
 	const [running, setRunning] = useState(false)
@@ -86,7 +78,6 @@ const QuizPerformance: React.FC = () => {
 	const [finished, setFinished] = useState(false)
 	const [feedback, setFeedback] = useState<'none' | 'success'>('none')
 
-	// Refs
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const rendererRef = useRef<Renderer | null>(null)
 	const analyserRef = useRef<AnalyserNode | null>(null)
@@ -97,7 +88,6 @@ const QuizPerformance: React.FC = () => {
 
 	const availableMidis = Array.from({ length: DEFAULT_RANGE.max - DEFAULT_RANGE.min + 1 }, (_, i) => DEFAULT_RANGE.min + i)
 
-	// Init VexFlow
 	useEffect(() => {
 		if (!containerRef.current) return
 		containerRef.current.innerHTML = ''
@@ -105,9 +95,8 @@ const QuizPerformance: React.FC = () => {
 		renderer.resize(420, 160)
 		rendererRef.current = renderer
 		draw()
-	}, [running, finished]) // Re-init on state change if needed
+	}, [running, finished])
 
-	// Timer Logic
 	useEffect(() => {
 		if (!running) return
 
@@ -230,7 +219,6 @@ const QuizPerformance: React.FC = () => {
 
 		const m = generateNextMidi()
 		setTargetMidi(m)
-		// Need to wait for render to draw? draw() uses ref, so it's fine
 		setTimeout(() => draw(m), 50)
 
 		void initAudio().then(() => {
@@ -256,7 +244,6 @@ const QuizPerformance: React.FC = () => {
 		const authToken = localStorage.getItem('token')
 
 		if (authToken) {
-			api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`
 			void api.post('/quiz/performance/results', {
 				duration,
 				notesCompleted,
@@ -353,7 +340,6 @@ const QuizPerformance: React.FC = () => {
 		)
 	}
 
-	// 1. Initial Start Screen
 	if (!running && !finished) {
 		return (
 			<div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
@@ -430,7 +416,6 @@ const QuizPerformance: React.FC = () => {
 		)
 	}
 
-	// 2. Result Screen
 	if (finished) {
 		return (
 			<div className="min-h-[calc(100vh-4rem)] bg-gray-50 flex items-center justify-center p-4">
@@ -477,7 +462,6 @@ const QuizPerformance: React.FC = () => {
 		)
 	}
 
-	// 3. Game Screen
 	return (
 		<div className={`min-h-[calc(100vh-4rem)] flex flex-col transition-colors duration-300 ${feedback === 'success' ? 'bg-green-50' : 'bg-gray-50'
 			}`}>

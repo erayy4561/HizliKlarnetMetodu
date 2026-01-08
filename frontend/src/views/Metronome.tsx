@@ -12,9 +12,6 @@ const MAX_BPM = 200
  * BPM, Zaman Ölçüsü (Time Signature) ayarları ve görsel vuruş göstergeleri içerir.
  */
 const Metronome: React.FC = () => {
-	// --- MEVCUT STATE VE MANTIK BÖLÜMÜNÜZ ---
-	// Metronomun çalışma mantığı, ses üretimi ve zamanlaması
-	// HİÇBİR DEĞİŞİKLİK YAPILMADAN korunmuştur.
 	const [bpm, setBpm] = useState(100)
 	const [timeSig, setTimeSig] = useState<TimeSig>('4/4')
 	const [isRunning, setIsRunning] = useState(false)
@@ -84,7 +81,6 @@ const Metronome: React.FC = () => {
 		setCurrentBeat(-1)
 		if (schedulerRafRef.current) cancelAnimationFrame(schedulerRafRef.current)
 		schedulerRafRef.current = null
-		// AudioContext'i hemen kapatmak yerine biraz bekleyip kapatalım
 		setTimeout(() => {
 			audioCtxRef.current?.close()
 			audioCtxRef.current = null
@@ -106,8 +102,6 @@ const Metronome: React.FC = () => {
 		}
 	}, [bpm, timeSig])
 
-	// --- YENİ GÖRSEL TASARIM BÖLÜMÜ ---
-	// Yukarıdaki mantıktan gelen veriler, aşağıdaki modern arayüzde gösterilir.
 	const barBeats = beatsPerBar(timeSig);
 	const timeSigOptions: TimeSig[] = ['4/4', '3/4', '2/4', '6/8'];
 

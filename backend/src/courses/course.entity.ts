@@ -12,10 +12,10 @@ export class Course {
     @Column('text')
     description: string;
 
-    @Column({ name: 'image_url' })
+    @Column({ name: 'image_url', nullable: true })
     imageUrl: string;
 
-    @Column()
+    @Column({ nullable: true })
     level: string;
 
     @ManyToMany(() => User, (user) => user.courses)

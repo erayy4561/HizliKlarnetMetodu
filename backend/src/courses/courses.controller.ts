@@ -24,7 +24,6 @@ export class CoursesController {
     @UseGuards(JwtAuthGuard)
     @Post()
     create(@Body() course: Partial<Course>) {
-        // Add role check here if needed (Admin only)
         return this.coursesService.create(course);
     }
 
@@ -39,6 +38,17 @@ export class CoursesController {
     }
 
     /**
+     * Kullanıcının kayıtlı olduğu dersleri listeler.
+     * @param req - İstek yapan kullanıcı bilgisi (token'dan gelir)
+     * @returns Kullanıcının kayıtlı olduğu dersler
+     */
+    @UseGuards(JwtAuthGuard)
+    @Get('my-enrollments')
+    getMyEnrollments(@Request() req) {
+        return this.coursesService.getEnrollmentsByUser(req.user.userId);
+    }
+
+    /**
      * Kullanıcıyı bir derse kaydeder.
      * @param id - Ders ID'si
      * @param req - İstek yapan kullanıcı bilgisi (token'dan gelir)
@@ -46,12 +56,7 @@ export class CoursesController {
     @UseGuards(JwtAuthGuard)
     @Post(':id/enroll')
     enroll(@Param('id') id: string, @Request() req) {
-        // req.user comes from JwtStrategy
-        return this.coursesService.enroll(+id, req.user); // req.user is {userId, ...} we need entity? 
-        // Wait, typeorm save needs entity or id. 
-        // Logic in service uses User entity logic (students: User[]). 
-        // TypeORM usually handles partial object with ID.
-        // Let's pass { id: req.user.userId } as User.
+        return this.coursesService.enroll(+id, req.user);
     }
 
     /**

@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import { api } from '../utils/api'
 
 type PortraitRow = {
     id: number
@@ -31,14 +31,12 @@ type PerformanceRow = {
 const UserDetail: React.FC = () => {
     const { id } = useParams()
     const { token } = useAuth()
-    const api = useMemo(() => axios.create({ baseURL: '/api' }), [])
     const [profile, setProfile] = useState<any | null>(null)
     const [portrait, setPortrait] = useState<PortraitRow[]>([])
     const [performance, setPerformance] = useState<PerformanceRow[]>([])
 
     useEffect(() => {
         if (!token || !id) return
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`
         api.get(`/admin/users/${id}`).then(r => setProfile(r.data)).catch((e) => {
             console.error('Fetch Profile Error:', e);
             setProfile(null);

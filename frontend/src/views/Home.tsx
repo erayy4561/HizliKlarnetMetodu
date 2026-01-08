@@ -2,8 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// --- Simgeler (İkonlar) ---
-// Bu ikonlar sadece bu bileşene özel olduğu için burada tanımlıyoruz.
 const MicIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="24" x2="12" y1="19" y2="22" /></svg>
 );
@@ -53,21 +51,21 @@ const Home: React.FC = () => {
                         <p className="text-gray-500 mt-3 text-lg">Pratik yapmak hiç bu kadar kolay ve eğlenceli olmamıştı.</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                        <div className="text-center p-8 bg-white rounded-xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        <Link to="/tuner" className="text-center p-8 bg-white rounded-xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                             <div className="flex items-center justify-center h-16 w-16 rounded-full bg-teal-100 text-teal-500 mx-auto mb-5"><MicIcon className="w-8 h-8" /></div>
                             <h3 className="text-2xl font-semibold">Canlı Akort Aleti</h3>
                             <p className="mt-2 text-gray-600">Mikrofonunuzu kullanarak anlık geri bildirim alın ve her zaman doğru notayı çalın.</p>
-                        </div>
-                        <div className="text-center p-8 bg-white rounded-xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        </Link>
+                        <Link to="/metronome" className="text-center p-8 bg-white rounded-xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                             <div className="flex items-center justify-center h-16 w-16 rounded-full bg-teal-100 text-teal-500 mx-auto mb-5"><MusicNoteIcon className="w-8 h-8" /></div>
                             <h3 className="text-2xl font-semibold">Akıllı Metronom</h3>
                             <p className="mt-2 text-gray-600">Ayarlanabilir tempo ve vuruş vurgularıyla ritim duygunuzu mükemmelleştirin.</p>
-                        </div>
-                        <div className="text-center p-8 bg-white rounded-xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                        </Link>
+                        <Link to="/quiz" className="text-center p-8 bg-white rounded-xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                             <div className="flex items-center justify-center h-16 w-16 rounded-full bg-teal-100 text-teal-500 mx-auto mb-5"><GamepadIcon className="w-8 h-8" /></div>
                             <h3 className="text-2xl font-semibold">Eğlenceli Testler</h3>
                             <p className="mt-2 text-gray-600">Nota okuma ve çalma becerilerinizi test ederek gelişiminizi takip edin.</p>
-                        </div>
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -81,7 +79,7 @@ const Home: React.FC = () => {
                         <p className="mt-4 text-gray-600 text-lg">14 Nisan 1999 tarihinde Soma'da doğdu. Üniversite eğitimimi Pamukkale Üniversitesinde tamamladı. Geleneksel metotları modern teknolojiyle birleştirerek, her seviyeden öğrenci için anlaşılır ve keyifli bir öğrenme deneyimi sunmak amacıyla bir metod üretim sürecine girdi.</p>
                     </div>
                     <div className="order-1 md:order-2">
-                        <img src="https://placehold.co/500x500/e2e8f0/334155?text=Eray+HIZLI&font=serif" alt="Eray HIZLI" className="rounded-xl shadow-2xl w-full h-auto object-cover" />
+                        <img src="/Eray.hoca.klarnet.jpg" alt="Eray HIZLI" className="rounded-xl shadow-2xl w-full h-auto object-cover" />
                     </div>
                 </div>
             </section>
