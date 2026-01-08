@@ -13,14 +13,15 @@ import { AdminModule } from './admin/admin.module';
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
-      type: 'mysql',
+      type: 'postgres',
       host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '3306'),
+      port: parseInt(process.env.DB_PORT || '5432'),
       username: process.env.DB_USER || 'app',
       password: process.env.DB_PASSWORD || 'app_password',
       database: process.env.DB_NAME || 'clarinet_lessons',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true, // Enable auto-sync for development
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     }),
     AuthModule,
     UsersModule,
