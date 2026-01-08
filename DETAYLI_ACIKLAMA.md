@@ -33,13 +33,9 @@ Projenin ana dizini. Backend ve frontend'i bir arada tutar.
 - **İşlevi:** Projenin teknik mimari raporu
 - **Neden var:** Proje dokümantasyonu, şart kontrol raporu
 
-### 1.5. `DEPLOYMENT.md`
-- **İşlevi:** Deployment (yayınlama) talimatları
-- **Neden var:** Uygulamayı canlıya almak için rehber
-
-### 1.6. `RENDER_WEB_SERVICE_KURULUM.md`
-- **İşlevi:** Render platformunda backend deployment kılavuzu
-- **Neden var:** Render'a deploy etmek için adım adım talimatlar
+### 1.5. `DETAYLI_ACIKLAMA.md`
+- **İşlevi:** Projedeki tüm dosya ve klasörlerin detaylı açıklaması
+- **Neden var:** Kod yapısını anlamak için kapsamlı rehber
 
 ---
 
@@ -54,7 +50,8 @@ NestJS framework'ü ile yazılmış RESTful API backend'i.
   - `@nestjs/core`: NestJS framework'ü
   - `@nestjs/typeorm`: Veritabanı ORM
   - `@nestjs/jwt`: JWT token işlemleri
-  - `pg`: PostgreSQL driver
+  - `pg`: PostgreSQL driver (production için)
+  - `better-sqlite3`: SQLite driver (lokal geliştirme için)
   - `bcrypt`: Şifre hashleme
 - **Önemli script'ler:**
   - `npm run build`: TypeScript'i JavaScript'e derler
@@ -104,9 +101,10 @@ NestJS framework'ü ile yazılmış RESTful API backend'i.
 - **Neden var:** Backend geliştiricileri için rehber
 
 ### 2.9. `backend/database.sqlite`
-- **İşlevi:** SQLite veritabanı dosyası (geliştirme için)
-- **Neden var:** Lokal geliştirmede MySQL yerine SQLite kullanılabilir
-- **Not:** Production'da PostgreSQL kullanılıyor
+- **İşlevi:** SQLite veritabanı dosyası (lokal geliştirme için)
+- **Neden var:** Lokal geliştirmede varsayılan olarak SQLite kullanılır
+- **Önemli:** Bu dosya otomatik oluşturulur, Git'e commit edilmemelidir (.gitignore'da)
+- **Not:** Production'da PostgreSQL kullanılabilir (`DB_TYPE=postgres` environment variable ile)
 
 ### 2.10. `backend/error.log`
 - **İşlevi:** Backend hata logları
@@ -191,22 +189,31 @@ Backend'in tüm kaynak kodları burada.
 - **Önemli kod blokları:**
   ```typescript
   TypeOrmModule.forRoot({
-    type: 'postgres',                    // PostgreSQL kullan
-    host: process.env.DB_HOST,           // Database host'u
-    port: parseInt(process.env.DB_PORT),  // Database port'u
-    username: process.env.DB_USER,       // Database kullanıcı adı
-    password: process.env.DB_PASSWORD,   // Database şifresi
-    database: process.env.DB_NAME,       // Database adı
+    // Veritabanı tipi: DB_TYPE=postgres ise PostgreSQL, yoksa SQLite (varsayılan)
+    type: process.env.DB_TYPE === 'postgres' ? 'postgres' : 'better-sqlite3',
+    
+    // PostgreSQL için gerekli (SQLite için undefined)
+    host: process.env.DB_TYPE === 'postgres' ? (process.env.DB_HOST || 'localhost') : undefined,
+    port: process.env.DB_TYPE === 'postgres' ? parseInt(process.env.DB_PORT || '5432') : undefined,
+    username: process.env.DB_TYPE === 'postgres' ? (process.env.DB_USER || 'app') : undefined,
+    password: process.env.DB_TYPE === 'postgres' ? (process.env.DB_PASSWORD || 'app_password') : undefined,
+    
+    // Database adı: PostgreSQL için environment variable, SQLite için dosya adı
+    database: process.env.DB_TYPE === 'postgres' ? (process.env.DB_NAME || 'clarinet_lessons') : 'database.sqlite',
+    
     entities: [__dirname + '/**/*.entity{.ts,.js}'],  // Entity'leri otomatik bul
     synchronize: true,                   // Otomatik tablo oluştur/güncelle
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    
+    // SSL sadece production ve PostgreSQL için
+    ssl: process.env.NODE_ENV === 'production' && process.env.DB_TYPE === 'postgres' 
+      ? { rejectUnauthorized: false } 
+      : false
   })
   ```
 - **Neden önemli:** Veritabanı bağlantısı ve tüm modüller burada tanımlanır
-
-#### 2.16.3. `backend/src/app.module.postgresql.ts`
-- **İşlevi:** PostgreSQL için alternatif modül (kullanılmıyor)
-- **Neden var:** Geçici olarak oluşturulmuş, şu an `app.module.ts` kullanılıyor
+- **Veritabanı Seçimi:**
+  - **Varsayılan (SQLite):** Hiçbir environment variable gerekmez, `database.sqlite` dosyası otomatik oluşturulur
+  - **PostgreSQL:** `DB_TYPE=postgres` environment variable'ı ile aktif edilir
 
 #### 2.16.4. `backend/src/app.controller.ts` - Ana Controller
 - **İşlevi:** Basit health-check endpoint'i ve kullanıcı profil endpoint'i
@@ -547,18 +554,6 @@ React + Vite ile yazılmış kullanıcı arayüzü.
 - **İşlevi:** Frontend TypeScript ayarları
 - **Neden var:** TypeScript derleme ayarları
 
-### 3.4. `frontend/vercel.json`
-- **İşlevi:** Vercel deployment ayarları
-- **Neden var:** Vercel'de frontend'i deploy etmek için
-- **Önemli kod blokları:**
-  ```json
-  {
-    "rewrites": [
-      { "source": "/(.*)", "destination": "/index.html" }
-    ]
-  }
-  ```
-- **Neden önemli:** React Router için SPA routing desteği
 
 ### 3.5. `frontend/Dockerfile`
 - **İşlevi:** Frontend için Docker image tanımı
@@ -568,35 +563,35 @@ React + Vite ile yazılmış kullanıcı arayüzü.
 - **İşlevi:** Nginx web server yapılandırması
 - **Neden var:** Production'da static dosyaları serve etmek için
 
-### 3.7. `frontend/index.html`
+### 3.8. `frontend/index.html`
 - **İşlevi:** HTML giriş noktası
 - **Neden var:** React uygulamasının mount edileceği yer
 
-### 3.8. `frontend/public/` - Public Dosyalar
+### 3.9. `frontend/public/` - Public Dosyalar
 - **İşlevi:** Statik dosyalar (görseller, favicon)
 - **Neden var:** Build sırasında kopyalanır, direkt erişilebilir
 
-#### 3.8.1. `frontend/public/logo_large.png`
+#### 3.9.1. `frontend/public/logo_large.png`
 - **İşlevi:** Uygulama logosu
 - **Neden var:** Görsel kimlik
 
-#### 3.8.2. `frontend/public/favicon.png`
+#### 3.9.2. `frontend/public/favicon.png`
 - **İşlevi:** Tarayıcı sekmesi ikonu
 - **Neden var:** Görsel kimlik
 
-#### 3.8.3. `frontend/public/Eray.hoca.klarnet.jpg`
+#### 3.9.3. `frontend/public/Eray.hoca.klarnet.jpg`
 - **İşlevi:** Eğitmen görseli
 - **Neden var:** İçerik
 
-### 3.9. `frontend/dist/` - Build Çıktısı
+### 3.10. `frontend/dist/` - Build Çıktısı
 - **İşlevi:** Vite'nin build çıktıları
 - **Neden var:** Production'da serve edilecek dosyalar
 - **Not:** `npm run build` komutu ile oluşturulur
 
-### 3.10. `frontend/src/` - Kaynak Kodlar
+### 3.11. `frontend/src/` - Kaynak Kodlar
 Frontend'in tüm kaynak kodları burada.
 
-#### 3.10.1. `frontend/src/main.tsx` - Uygulama Giriş Noktası
+#### 3.11.1. `frontend/src/main.tsx` - Uygulama Giriş Noktası
 - **İşlevi:** React uygulamasını başlatır
 - **Neden var:** Uygulamanın başlangıç noktası
 - **Önemli kod blokları:**
@@ -612,7 +607,7 @@ Frontend'in tüm kaynak kodları burada.
   )
   ```
 
-#### 3.10.2. `frontend/src/router.tsx` - Routing Yapılandırması
+#### 3.11.2. `frontend/src/router.tsx` - Routing Yapılandırması
 - **İşlevi:** Tüm route'ları tanımlar
 - **Neden var:** Sayfa yönlendirmeleri
 - **Önemli kod blokları:**
@@ -637,15 +632,15 @@ Frontend'in tüm kaynak kodları burada.
   ])
   ```
 
-#### 3.10.3. `frontend/src/styles.css` - Global Stiller
+#### 3.11.3. `frontend/src/styles.css` - Global Stiller
 - **İşlevi:** Tüm uygulama için global CSS stilleri
 - **Neden var:** Tutarlı görünüm
 
-#### 3.10.4. `frontend/src/i18n.ts` - Çoklu Dil Desteği
+#### 3.11.4. `frontend/src/i18n.ts` - Çoklu Dil Desteği
 - **İşlevi:** Dil yapılandırması (i18n)
 - **Neden var:** Çoklu dil desteği için (şu an kullanılmıyor olabilir)
 
-#### 3.10.5. `frontend/src/vite-env.d.ts` - Vite Tip Tanımları
+#### 3.11.5. `frontend/src/vite-env.d.ts` - Vite Tip Tanımları
 - **İşlevi:** Vite environment variable'ları için tip tanımları
 - **Neden var:** TypeScript tip desteği
 - **Önemli kod blokları:**
@@ -655,10 +650,10 @@ Frontend'in tüm kaynak kodları burada.
   }
   ```
 
-### 3.11. `frontend/src/context/` - Context API
+### 3.12. `frontend/src/context/` - Context API
 React Context API ile global state yönetimi.
 
-#### 3.11.1. `frontend/src/context/AuthContext.tsx` - Auth Context
+#### 3.12.1. `frontend/src/context/AuthContext.tsx` - Auth Context
 - **İşlevi:** Kullanıcı authentication state'ini yönetir
 - **Neden var:** Tüm uygulamada kullanıcı bilgisine erişim
 - **Önemli kod blokları:**
@@ -709,10 +704,10 @@ React Context API ile global state yönetimi.
   ```
 - **Neden önemli:** Tüm uygulama boyunca authentication state'ini yönetir
 
-### 3.12. `frontend/src/utils/` - Yardımcı Fonksiyonlar
+### 3.13. `frontend/src/utils/` - Yardımcı Fonksiyonlar
 Yeniden kullanılabilir yardımcı fonksiyonlar.
 
-#### 3.12.1. `frontend/src/utils/api.ts` - API Client
+#### 3.13.1. `frontend/src/utils/api.ts` - API Client
 - **İşlevi:** Merkezi Axios instance'ı ve token yönetimi
 - **Neden var:** Tüm API çağrılarını tek yerden yönetmek
 - **Önemli kod blokları:**
@@ -739,18 +734,18 @@ Yeniden kullanılabilir yardımcı fonksiyonlar.
   ```
 - **Neden önemli:** Tüm API çağrıları bu instance üzerinden yapılır, token otomatik eklenir
 
-#### 3.12.2. `frontend/src/utils/pitch.ts` - Pitch Yardımcı Fonksiyonları
+#### 3.13.2. `frontend/src/utils/pitch.ts` - Pitch Yardımcı Fonksiyonları
 - **İşlevi:** Pitch (perde) hesaplama fonksiyonları
 - **Neden var:** Tuner bileşeninde kullanılır
 
-### 3.13. `frontend/src/ui/` - UI Bileşenleri
+### 3.14. `frontend/src/ui/` - UI Bileşenleri
 Yeniden kullanılabilir UI bileşenleri.
 
-#### 3.13.1. `frontend/src/ui/AppLayout.tsx` - Ana Layout
+#### 3.14.1. `frontend/src/ui/AppLayout.tsx` - Ana Layout
 - **İşlevi:** Tüm sayfalar için ortak layout (header, navigation)
 - **Neden var:** Tutarlı görünüm ve navigasyon
 
-#### 3.13.2. `frontend/src/ui/Protected.tsx` - Korumalı Route Bileşeni
+#### 3.14.2. `frontend/src/ui/Protected.tsx` - Korumalı Route Bileşeni
 - **İşlevi:** Korumalı route'lar için wrapper bileşeni
 - **Neden var:** Sadece giriş yapmış kullanıcıların erişebileceği sayfalar
 - **Önemli kod blokları:**
@@ -766,14 +761,14 @@ Yeniden kullanılabilir UI bileşenleri.
   }
   ```
 
-### 3.14. `frontend/src/views/` - Sayfa Bileşenleri
+### 3.15. `frontend/src/views/` - Sayfa Bileşenleri
 Her sayfa için ayrı bileşen.
 
-#### 3.14.1. `frontend/src/views/Home.tsx` - Ana Sayfa
+#### 3.15.1. `frontend/src/views/Home.tsx` - Ana Sayfa
 - **İşlevi:** Uygulamanın ana sayfası
 - **Neden var:** Kullanıcıları karşılamak, uygulama hakkında bilgi vermek
 
-#### 3.14.2. `frontend/src/views/Login.tsx` - Giriş/Kayıt Sayfası
+#### 3.15.2. `frontend/src/views/Login.tsx` - Giriş/Kayıt Sayfası
 - **İşlevi:** Kullanıcı girişi ve kayıt formu
 - **Neden var:** Authentication işlemleri
 - **Önemli kod blokları:**
@@ -801,7 +796,7 @@ Her sayfa için ayrı bileşen.
   }
   ```
 
-#### 3.14.3. `frontend/src/views/Profile.tsx` - Profil Sayfası
+#### 3.15.3. `frontend/src/views/Profile.tsx` - Profil Sayfası
 - **İşlevi:** Kullanıcı profil bilgileri ve quiz sonuçları
 - **Neden var:** Kullanıcının kendi bilgilerini görmesi
 - **Önemli özellikler:**
@@ -809,7 +804,7 @@ Her sayfa için ayrı bileşen.
   - Quiz sonuçları listesi
   - Admin paneli (admin kullanıcılar için)
 
-#### 3.14.4. `frontend/src/views/Courses.tsx` - Kurslar Sayfası
+#### 3.15.4. `frontend/src/views/Courses.tsx` - Kurslar Sayfası
 - **İşlevi:** Kurs listesi ve kayıt işlemleri
 - **Neden var:** Kullanıcıların kursları görmesi ve kayıt olması
 - **Önemli kod blokları:**
@@ -827,7 +822,7 @@ Her sayfa için ayrı bileşen.
   }
   ```
 
-#### 3.14.5. `frontend/src/views/Tuner.tsx` - Akort Aracı
+#### 3.15.5. `frontend/src/views/Tuner.tsx` - Akort Aracı
 - **İşlevi:** Mikrofon ile nota algılama ve akort kontrolü
 - **Neden var:** Kullanıcıların enstrümanlarını akort etmesi
 - **Önemli kod blokları:**
@@ -838,15 +833,15 @@ Her sayfa için ayrı bileşen.
   // Nota hesapla ve akort durumunu göster
   ```
 
-#### 3.14.6. `frontend/src/views/Metronome.tsx` - Metronom
+#### 3.15.6. `frontend/src/views/Metronome.tsx` - Metronom
 - **İşlevi:** Ritim tutma aracı
 - **Neden var:** Kullanıcıların ritim çalışması
 
-#### 3.14.7. `frontend/src/views/Quiz.tsx` - Quiz Seçim Sayfası
+#### 3.15.7. `frontend/src/views/Quiz.tsx` - Quiz Seçim Sayfası
 - **İşlevi:** Quiz türlerini seçme sayfası
 - **Neden var:** Kullanıcıların quiz türünü seçmesi
 
-#### 3.14.8. `frontend/src/views/QuizPortrait.tsx` - Portrait Quiz
+#### 3.15.8. `frontend/src/views/QuizPortrait.tsx` - Portrait Quiz
 - **İşlevi:** Portre göstererek nota tahmin etme quiz'i
 - **Neden var:** Kullanıcıların nota okuma becerisini test etmek
 - **Önemli kod blokları:**
@@ -867,7 +862,7 @@ Her sayfa için ayrı bileşen.
   }
   ```
 
-#### 3.14.9. `frontend/src/views/QuizPerformance.tsx` - Performance Quiz
+#### 3.15.9. `frontend/src/views/QuizPerformance.tsx` - Performance Quiz
 - **İşlevi:** Mikrofon ile çalınan notaları algılama quiz'i
 - **Neden var:** Kullanıcıların çalma becerisini test etmek
 - **Önemli kod blokları:**
@@ -888,7 +883,7 @@ Her sayfa için ayrı bileşen.
   }
   ```
 
-#### 3.14.10. `frontend/src/views/UserDetail.tsx` - Kullanıcı Detay Sayfası
+#### 3.15.10. `frontend/src/views/UserDetail.tsx` - Kullanıcı Detay Sayfası
 - **İşlevi:** Admin için kullanıcı detay sayfası
 - **Neden var:** Admin'lerin kullanıcıları yönetmesi
 - **Önemli özellikler:**
