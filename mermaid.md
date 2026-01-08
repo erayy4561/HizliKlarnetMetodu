@@ -1,6 +1,6 @@
-# Clarinet Lessons - Veritabanı Entity Relationship Diagram (ERD)
+# HIZLI KLARNET METODU - Veritabanı Entity Relationship Diagram (ERD)
 
-Bu dosya, Clarinet Lessons projesinin veritabanı şemasını gösteren Mermaid ERD diyagramını içermektedir.
+Bu dosya, HIZLI KLARNET METODU projesinin veritabanı şemasını gösteren Mermaid ERD diyagramını içermektedir.
 
 ## Kullanım
 

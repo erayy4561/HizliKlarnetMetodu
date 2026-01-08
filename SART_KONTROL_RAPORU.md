@@ -1,6 +1,6 @@
 # Proje Şart Kontrol Raporu
 
-Bu rapor, Clarinet Lessons projesinin belirtilen şartları ne ölçüde karşıladığını değerlendirmektedir.
+Bu rapor, HIZLI KLARNET METODU projesinin belirtilen şartları ne ölçüde karşıladığını değerlendirmektedir.
 
 ## ✅ Karşılanan Şartlar
 

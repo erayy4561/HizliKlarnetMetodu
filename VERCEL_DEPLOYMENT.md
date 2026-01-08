@@ -1,6 +1,6 @@
 # Vercel Deployment Kılavuzu
 
-Bu kılavuz, Clarinet Lessons projesini Vercel'e deploy etmek için adımları içermektedir.
+Bu kılavuz, HIZLI KLARNET METODU projesini Vercel'e deploy etmek için adımları içermektedir.
 
 ## Önemli Notlar
 

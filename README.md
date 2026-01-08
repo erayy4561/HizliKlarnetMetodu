@@ -1,4 +1,4 @@
-# Clarinet Lessons - Yerel Geliştirme Kılavuzu
+# HIZLI KLARNET METODU - Yerel Geliştirme Kılavuzu
 
 Bu proje, **NestJS** backend ve **React** frontend içeren bir klarnet dersleri uygulamasıdır. Veritabanı olarak **MySQL** kullanır ve Docker ile tamamen konteynerize edilmiştir.
 
