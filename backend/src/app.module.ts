@@ -13,15 +13,15 @@ import { AdminModule } from './admin/admin.module';
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432'),
-      username: process.env.DB_USER || 'app',
-      password: process.env.DB_PASSWORD || 'app_password',
-      database: process.env.DB_NAME || 'clarinet_lessons',
+      type: process.env.DB_TYPE === 'postgres' ? 'postgres' : 'better-sqlite3',
+      host: process.env.DB_TYPE === 'postgres' ? (process.env.DB_HOST || 'localhost') : undefined,
+      port: process.env.DB_TYPE === 'postgres' ? parseInt(process.env.DB_PORT || '5432') : undefined,
+      username: process.env.DB_TYPE === 'postgres' ? (process.env.DB_USER || 'app') : undefined,
+      password: process.env.DB_TYPE === 'postgres' ? (process.env.DB_PASSWORD || 'app_password') : undefined,
+      database: process.env.DB_TYPE === 'postgres' ? (process.env.DB_NAME || 'clarinet_lessons') : 'database.sqlite',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true, // Enable auto-sync for development
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl: process.env.NODE_ENV === 'production' && process.env.DB_TYPE === 'postgres' ? { rejectUnauthorized: false } : false,
     }),
     AuthModule,
     UsersModule,
